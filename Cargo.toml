@@ -1,0 +1,21 @@
+[package]
+name = "containerd-shim-cehostshim-v1"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+containerd-shim-wasmtime-v1 = { git="https://github.com/Mossaka/runwasi.git", branch="original" }
+wit-bindgen-wasmtime        = { git = "https://github.com/bytecodealliance/wit-bindgen", branch = "main" }
+cloudevents-sdk  = { default-features = false, git = "https://github.com/Mossaka/sdk-rust.git", branch = "master" }
+url = "2.2.2"
+rouille = "3.5.0"
+uuid = "0.8.2"
+anyhow = "1.0"
+chrono = "0.4.19"
+log = "0.4"
+wasmtime = "^0.34"
+wasmtime-wasi = "^0.34"
+serde_json = "1.0"
+containerd-shim = "0.3.0"
