@@ -211,24 +211,7 @@ impl Instance for Wasi {
                 *ec = Some((0, Utc::now()));
                 cvar.notify_all();
                 rouille::start_server("0.0.0.0:80", move |request| {
-                    let mut data = request.data().expect("Oops, body already retrieved, problem \
-                                          in the server");
-                    let mut buf = Vec::new();
-                    match data.read_to_end(&mut buf) {
-                        Ok(_) => (),
-                        Err(_) => return Response::text("Failed to read body")
-                    };
-                    let event = EventBuilderV10::new()
-                        .id(Uuid::new_v4().to_string())
-                        .source(request.url().as_str())
-                        .ty("com.microsoft.steelthread.wasm")
-                        .time(Utc::now())
-                        .data("string", buf)
-                        .build().unwrap();
-                    let event = serde_json::to_string(&event).unwrap();
-                    let mut store = store.lock().unwrap();
-                    let event = t.ce_handler(&mut *store, &event).unwrap();
-                    Response::text("hello world")
+                    handle_ce(request, &store, &t)
                 });
             }
         )?;
@@ -285,6 +268,27 @@ impl Instance for Wasi {
 
         Ok(())
     }
+}
+
+fn handle_ce(request: &rouille::Request, store: &Mutex<Store<WasiContext>>, t: &wasi_ce::WasiCe<WasiContext>) -> Response {
+    let mut data = request.data().expect("Oops, body already retrieved, problem \
+                                          in the server");
+    let mut buf = Vec::new();
+    match data.read_to_end(&mut buf) {
+        Ok(_) => (),
+        Err(_) => return Response::text("Failed to read body")
+    };
+    let event = EventBuilderV10::new()
+        .id(Uuid::new_v4().to_string())
+        .source(request.url().as_str())
+        .ty("com.microsoft.steelthread.wasm")
+        .time(Utc::now())
+        .data("string", buf)
+        .build().unwrap();
+    let event = serde_json::to_string(&event).unwrap();
+    let mut store = store.lock().unwrap();
+    let event = t.ce_handler(&mut *store, &event).unwrap();
+    Response::text("hello world")
 }
 
 fn main() {

@@ -29,7 +29,7 @@ load_cpp: test/out_cpp/img.tar
 	sudo ctr -n $(CONTAINERD_NAMESPACE) image import $<
 
 run:
-	sudo ctr run --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME) testwasm
+	sudo ctr run --cni --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME) testwasm
 
 run_cpp:
-	sudo ctr run --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME_CPP) testwasm
+	sudo ctr run --cni --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME_CPP) testwasm
