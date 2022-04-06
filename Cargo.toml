@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-containerd-shim-wasmtime-v1 = { git="https://github.com/Mossaka/runwasi.git", branch="original" }
+containerd-shim-wasmtime-v1 = { git="https://github.com/cpuguy83/runwasi", branch="main" }
 wit-bindgen-wasmtime        = { git = "https://github.com/bytecodealliance/wit-bindgen", branch = "main" }
 cloudevents-sdk  = { default-features = false, git = "https://github.com/Mossaka/sdk-rust.git", branch = "master" }
 url = "2.2.2"

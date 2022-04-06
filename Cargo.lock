@@ -381,7 +381,7 @@ dependencies = [
 [[package]]
 name = "containerd-shim-wasmtime-v1"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/runwasi.git?branch=original#2a3ff9c7d03dee51995e9a122474a2e33d733a21"
+source = "git+https://github.com/cpuguy83/runwasi?branch=main#30ba8a803aee82ced0597c960ed887fd860c5851"
 dependencies = [
  "anyhow",
  "cap-std",
