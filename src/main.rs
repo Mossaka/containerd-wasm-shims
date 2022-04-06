@@ -1,9 +1,16 @@
-use containerd_shim_wasmtime_v1::sandbox::Instance;
-use containerd_shim_wasmtime_v1::sandbox::error::Error;
-use containerd_shim_wasmtime_v1::sandbox::oci;
 use anyhow::Context;
 use chrono::{DateTime, Utc};
-use log::{info};
+use cloudevents::Event;
+use cloudevents::{EventBuilder, EventBuilderV10};
+use containerd_shim as shim;
+use containerd_shim_wasmtime_v1::sandbox::error::Error;
+use containerd_shim_wasmtime_v1::sandbox::oci;
+use containerd_shim_wasmtime_v1::sandbox::Instance;
+use containerd_shim_wasmtime_v1::sandbox::{
+    instance::maybe_open_stdio, instance::InstanceConfig, ShimCli,
+};
+use log::info;
+use rouille::Response;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::Path;
@@ -11,13 +18,9 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
+use uuid::Uuid;
 use wasmtime::{Linker, Module, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
-use cloudevents::{EventBuilder, AttributesReader, EventBuilderV10};
-use uuid::Uuid;
-use rouille::Response;
-use containerd_shim as shim;
-use containerd_shim_wasmtime_v1::sandbox::{ShimCli, instance::maybe_open_stdio, instance::InstanceConfig};
 
 wit_bindgen_wasmtime::import!("wasi-ce.wit");
 
@@ -104,7 +107,7 @@ pub fn prepare_module(
 
 pub struct WasiContext {
     pub wasi: WasiCtx,
-    pub wasi_data: Option<wasi_ce::WasiCeData>
+    pub wasi_data: Option<wasi_ce::WasiCeData>,
 }
 
 impl Instance for Wasi {
@@ -122,7 +125,6 @@ impl Instance for Wasi {
     }
     fn start(&self) -> Result<u32, Error> {
         let engine = self.engine.clone();
-        
 
         let exit_code = self.exit_code.clone();
         let interupt = self.interupt.clone();
@@ -150,7 +152,8 @@ impl Instance for Wasi {
                     }
                 };
 
-                wasi_ce::WasiCe::add_to_linker(&mut linker, |cx| cx.wasi_data.as_mut().unwrap()).unwrap();
+                wasi_ce::WasiCe::add_to_linker(&mut linker, |cx| cx.wasi_data.as_mut().unwrap())
+                    .unwrap();
 
                 info!("preparing module");
                 let m = match prepare_module(engine.clone(), bundle, stdin, stdout, stderr) {
@@ -161,7 +164,6 @@ impl Instance for Wasi {
                     }
                 };
 
-
                 let ctx = WasiContext {
                     wasi: m.0,
                     wasi_data,
@@ -170,9 +172,10 @@ impl Instance for Wasi {
                 let mut store = Store::new(&engine, ctx);
 
                 info!("instantiating instnace");
-                let i = match linker.instantiate(&mut store, &m.1).map_err(|err| {
-                    Error::Others(format!("error instantiating module: {}", err))
-                }) {
+                let i = match linker
+                    .instantiate(&mut store, &m.1)
+                    .map_err(|err| Error::Others(format!("error instantiating module: {}", err)))
+                {
                     Ok(i) => i,
                     Err(err) => {
                         tx.send(Err(err)).unwrap();
@@ -181,9 +184,10 @@ impl Instance for Wasi {
                 };
 
                 info!("getting interupt handle");
-                match store.interrupt_handle().map_err(|err| {
-                    Error::Others(format!("could not get interupt handle: {}", err))
-                }) {
+                match store
+                    .interrupt_handle()
+                    .map_err(|err| Error::Others(format!("could not get interupt handle: {}", err)))
+                {
                     Ok(h) => {
                         let mut lock = interupt.write().unwrap();
                         *lock = Some(h);
@@ -201,20 +205,17 @@ impl Instance for Wasi {
                 info!("starting wasi instance");
 
                 let (lock, cvar) = &*exit_code;
-                let t = wasi_ce::WasiCe::new(&mut store, &i, |host| {
-                    host.wasi_data.as_mut().unwrap()
-                }).unwrap();
-                
+                let t =
+                    wasi_ce::WasiCe::new(&mut store, &i, |host| host.wasi_data.as_mut().unwrap())
+                        .unwrap();
+
                 let mut store = Mutex::new(store);
 
                 let mut ec = lock.lock().unwrap();
                 *ec = Some((0, Utc::now()));
                 cvar.notify_all();
-                rouille::start_server("0.0.0.0:80", move |request| {
-                    handle_ce(request, &store, &t)
-                });
-            }
-        )?;
+                rouille::start_server("0.0.0.0:80", move |request| handle_ce(request, &store, &t));
+            })?;
 
         info!("Waiting for start notification");
         match rx.recv().unwrap() {
@@ -270,25 +271,38 @@ impl Instance for Wasi {
     }
 }
 
-fn handle_ce(request: &rouille::Request, store: &Mutex<Store<WasiContext>>, t: &wasi_ce::WasiCe<WasiContext>) -> Response {
-    let mut data = request.data().expect("Oops, body already retrieved, problem \
-                                          in the server");
-    let mut buf = Vec::new();
-    match data.read_to_end(&mut buf) {
+fn handle_ce(
+    request: &rouille::Request,
+    store: &Mutex<Store<WasiContext>>,
+    t: &wasi_ce::WasiCe<WasiContext>,
+) -> Response {
+    let mut data = request.data().expect(
+        "Oops, body already retrieved, problem \
+                                          in the server",
+    );
+    let mut buf = "".to_string();
+    match data.read_to_string(&mut buf) {
         Ok(_) => (),
-        Err(_) => return Response::text("Failed to read body")
+        Err(_) => return Response::text("Failed to read body"),
     };
     let event = EventBuilderV10::new()
         .id(Uuid::new_v4().to_string())
-        .source(request.url().as_str())
+        .source(format!("{}{}", request.remote_addr(), request.url()))
         .ty("com.microsoft.steelthread.wasm")
         .time(Utc::now())
-        .data("string", buf)
-        .build().unwrap();
+        .data("application/json", buf)
+        .build()
+        .unwrap();
     let event = serde_json::to_string(&event).unwrap();
     let mut store = store.lock().unwrap();
-    let event = t.ce_handler(&mut *store, &event).unwrap();
-    Response::text("hello world")
+    let event = t.ce_handler(&mut *store, &event).unwrap().unwrap();
+
+    let event: Event = serde_json::from_str(&event).unwrap();
+    let mut buf = "hello world!".to_string();
+    if let Some(data) = event.data() {
+        buf = data.to_string();
+    }
+    Response::text(buf)
 }
 
 fn main() {
