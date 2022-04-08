@@ -44,3 +44,6 @@ run_cpp:
 
 run_dotnet:
 	sudo ctr run --cni --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME_DOTNET) testdotnet
+
+clean:
+	sudo rm -rf ./test
