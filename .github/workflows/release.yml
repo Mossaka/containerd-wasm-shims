@@ -75,6 +75,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./images/aspnet
-          file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/aspdotnet_wasm:latest
