@@ -340,25 +340,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "containerd-shim-cehostshim-v1"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "cloudevents-sdk",
- "containerd-shim",
- "containerd-shim-wasmtime-v1",
- "log",
- "rouille",
- "serde_json",
- "url",
- "uuid",
- "wasmtime",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime",
-]
-
-[[package]]
 name = "containerd-shim-protos"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -376,6 +357,25 @@ checksum = "077ec778a0835d9d85502e8535362130187759b69eddabe2bdb3a68ffb575bd0"
 dependencies = [
  "protobuf",
  "ttrpc 0.6.0",
+]
+
+[[package]]
+name = "containerd-shim-wasm"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "cloudevents-sdk",
+ "containerd-shim",
+ "containerd-shim-wasmtime-v1",
+ "log",
+ "rouille",
+ "serde_json",
+ "url",
+ "uuid",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime",
 ]
 
 [[package]]

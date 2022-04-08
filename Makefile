@@ -12,29 +12,23 @@ build:
 
 .PHONY: install
 install:
-	$(INSTALL) target/release/containerd-shim-cehostshim-v1 $(PREFIX)/bin
-
+	sudo $(INSTALL) target/release/containerd-shim-*-v1 $(PREFIX)/bin
+	
 # TODO: build this manually instead of requiring buildx
-test/out/img.tar: crates/image-rs/Dockerfile crates/image-rs/src/lib.rs crates/image-rs/Cargo.toml crates/image-rs/Cargo.lock
+test/out/img.tar: images/image-rs/Dockerfile images/image-rs/src/lib.rs images/image-rs/Cargo.toml images/image-rs/Cargo.lock
 	mkdir -p $(@D)
-	docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME) ./crates/image-rs
+	sudo docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME) ./images/image-rs
 
-test/out_cpp/img.tar: crates/image-cpp/Dockerfile
+test/out_cpp/img.tar: images/image-cpp/Dockerfile
 	mkdir -p $(@D)
-	docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME_CPP) ./crates/image-cpp
+	sudo docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME_CPP) ./images/image-cpp
 
-test/out_dotnet/img.tar: crates/aspnet/Dockerfile
+test/out_dotnet/img.tar: images/aspnet/Dockerfile
 	mkdir -p $(@D)
-	docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME_DOTNET) ./crates/aspnet
+	sudo docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME_DOTNET) ./images/aspnet
 
-load: test/out/img.tar
-	sudo ctr -n $(CONTAINERD_NAMESPACE) image import $<
-
-load_cpp: test/out_cpp/img.tar
-	sudo ctr -n $(CONTAINERD_NAMESPACE) image import $<
-
-load_dotnet: test/out_dotnet/img.tar
-	sudo ctr -n $(CONTAINERD_NAMESPACE) image import $<
+load: test/out/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar
+	sudo ctr -n $(CONTAINERD_NAMESPACE) image import $^
 
 run:
 	sudo ctr run --cni --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME) testwasm
@@ -43,7 +37,7 @@ run_cpp:
 	sudo ctr run --cni --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME_CPP) testwasm
 
 run_dotnet:
-	sudo ctr run --cni --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME_DOTNET) testdotnet
+	sudo ctr run --cni --rm --runtime=io.containerd.aspdotnet.v1 docker.io/library/$(TEST_IMG_NAME_DOTNET) testdotnet
 
 clean:
 	sudo rm -rf ./test
