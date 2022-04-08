@@ -17,9 +17,6 @@ use std::thread;
 use wasmtime::{Linker, Module, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::sync::TcpListener;
-
-wit_bindgen_wasmtime::import!("wasi-ce.wit");
-
 pub struct Wasi {
     interupt: Arc<RwLock<Option<wasmtime::InterruptHandle>>>,
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
@@ -110,11 +107,6 @@ pub fn prepare_module(
     Ok((wctx, module))
 }
 
-pub struct WasiContext {
-    pub wasi: WasiCtx,
-    pub wasi_data: Option<wasi_ce::WasiCeData>,
-}
-
 impl Instance for Wasi {
     fn new(id: String, cfg: &InstanceConfig) -> Self {
         Wasi {
@@ -143,11 +135,9 @@ impl Instance for Wasi {
             .name(self.id.clone())
             .spawn(move || {
                 info!("starting instance");
-                let wasi_data = Some(wasi_ce::WasiCeData::default());
-
                 let mut linker = Linker::new(&engine);
 
-                match wasmtime_wasi::add_to_linker(&mut linker, |s: &mut WasiContext| &mut s.wasi)
+                match wasmtime_wasi::add_to_linker(&mut linker, |s| s)
                     .map_err(|err| Error::Others(format!("error adding to linker: {}", err)))
                 {
                     Ok(_) => (),
@@ -156,9 +146,6 @@ impl Instance for Wasi {
                         return;
                     }
                 };
-
-                wasi_ce::WasiCe::add_to_linker(&mut linker, |cx| cx.wasi_data.as_mut().unwrap())
-                    .unwrap();
 
                 info!("preparing module");
                 let m = match prepare_module(engine.clone(), bundle, stdin, stdout, stderr) {
@@ -169,12 +156,7 @@ impl Instance for Wasi {
                     }
                 };
 
-                let ctx = WasiContext {
-                    wasi: m.0,
-                    wasi_data,
-                };
-
-                let mut store = Store::new(&engine, ctx);
+                let mut store = Store::new(&engine, m.0);
 
                 info!("instantiating instnace");
                 let i = match linker

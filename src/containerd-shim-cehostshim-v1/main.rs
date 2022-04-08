@@ -22,7 +22,7 @@ use uuid::Uuid;
 use wasmtime::{Linker, Module, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
 
-wit_bindgen_wasmtime::import!("wasi-ce.wit");
+wit_bindgen_wasmtime::import!("./src/containerd-shim-cehostshim-v1/wasi-ce.wit");
 
 pub struct Wasi {
     interupt: Arc<RwLock<Option<wasmtime::InterruptHandle>>>,
