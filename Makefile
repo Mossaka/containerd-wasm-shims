@@ -15,7 +15,7 @@ install:
 	sudo $(INSTALL) target/release/containerd-shim-*-v1 $(PREFIX)/bin
 	
 # TODO: build this manually instead of requiring buildx
-test/out/img.tar: images/image-rs/Dockerfile images/image-rs/src/lib.rs images/image-rs/Cargo.toml images/image-rs/Cargo.lock
+test/out_rs/img.tar: images/image-rs/Dockerfile images/image-rs/src/lib.rs images/image-rs/Cargo.toml images/image-rs/Cargo.lock
 	mkdir -p $(@D)
 	sudo docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME) ./images/image-rs
 
@@ -27,7 +27,7 @@ test/out_dotnet/img.tar: images/aspnet/Dockerfile
 	mkdir -p $(@D)
 	sudo docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME_DOTNET) ./images/aspnet
 
-load: test/out/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar
+load: test/out_rs/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar
 	sudo ctr -n $(CONTAINERD_NAMESPACE) image import $^
 
 run:
