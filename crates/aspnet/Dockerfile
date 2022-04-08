@@ -1,0 +1,7 @@
+FROM --platform=${BUILDPLATFORM} rust:1.59 AS build
+WORKDIR /opt/wasmtest
+COPY . .
+
+FROM scratch
+ENTRYPOINT ["/wasm"]
+COPY --from=build /opt/wasmtest/wasiwebapp.wasm /wasm

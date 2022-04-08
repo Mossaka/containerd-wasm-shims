@@ -21,6 +21,7 @@ use std::thread;
 use uuid::Uuid;
 use wasmtime::{Linker, Module, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
+use wasmtime_wasi::sync::TcpListener;
 
 wit_bindgen_wasmtime::import!("wasi-ce.wit");
 
@@ -85,6 +86,15 @@ pub fn prepare_module(
     if stderr.is_some() {
         wasi_builder = wasi_builder.stderr(Box::new(stderr.unwrap()));
     }
+
+    let ip_address = "0.0.0.0:80";
+    let stdlistener = std::net::TcpListener::bind(ip_address).with_context(|| format!("failed to bind to address '0.0.0.0:80'"))?;
+
+    let _ = stdlistener.set_nonblocking(true)?;
+    let tcplisten = TcpListener::from_std(stdlistener);
+    wasi_builder = wasi_builder.preopened_socket(3 as _, tcplisten)?;
+
+    wasi_builder = wasi_builder.env("ASPNETCORE_URLS", "http://0.0.0.0:8080")?;
 
     info!("building wasi context");
     let wctx = wasi_builder.build();
@@ -199,22 +209,40 @@ impl Instance for Wasi {
                     }
                 };
 
+                info!("getting start function");
+                let f = match i
+                    .get_func(&mut store, "_start")
+                    .ok_or(Error::InvalidArgument(
+                        "module does not have a wasi start function".to_string(),
+                    )) {
+                    Ok(f) => f,
+                    Err(err) => {
+                        tx.send(Err(err)).unwrap();
+                        return;
+                    }
+                };
+
                 info!("notifying main thread we are about to start");
                 tx.send(Ok(())).unwrap();
+
 
                 info!("starting wasi instance");
 
                 let (lock, cvar) = &*exit_code;
-                let t =
-                    wasi_ce::WasiCe::new(&mut store, &i, |host| host.wasi_data.as_mut().unwrap())
-                        .unwrap();
+                    let _ret = match f.call(&mut store, &mut vec![], &mut vec![]) {
+                        Ok(_) => {
+                            info!("exit code: {}", 0);
+                            let mut ec = lock.lock().unwrap();
+                            *ec = Some((0, Utc::now()));
+                        }
+                        Err(_) => {
+                            info!("exit code: {}", 137);
+                            let mut ec = lock.lock().unwrap();
+                            *ec = Some((137, Utc::now()));
+                        }
+                    };
 
-                let mut store = Mutex::new(store);
-
-                let mut ec = lock.lock().unwrap();
-                *ec = Some((0, Utc::now()));
-                cvar.notify_all();
-                rouille::start_server("0.0.0.0:80", move |request| handle_ce(request, &store, &t));
+                    cvar.notify_all();
             })?;
 
         info!("Waiting for start notification");
@@ -246,6 +274,8 @@ impl Instance for Wasi {
         let i = interupt.as_ref().ok_or(Error::FailedPrecondition(
             "module is not running".to_string(),
         ))?;
+
+        // TODO: exit the server
 
         i.interrupt();
         Ok(())
