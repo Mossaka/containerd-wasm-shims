@@ -2,12 +2,14 @@ use anyhow::Context;
 use chrono::{DateTime, Utc};
 use containerd_shim as shim;
 use containerd_shim_wasmtime_v1::sandbox::error::Error;
+use containerd_shim_wasmtime_v1::sandbox::instance::EngineGetter;
 use containerd_shim_wasmtime_v1::sandbox::oci;
 use containerd_shim_wasmtime_v1::sandbox::Instance;
 use containerd_shim_wasmtime_v1::sandbox::{
     instance::maybe_open_stdio, instance::InstanceConfig, ShimCli,
 };
 use log::info;
+use wasmtime::OptLevel;
 use std::fs::OpenOptions;
 use std::path::Path;
 use std::sync::mpsc::channel;
@@ -275,6 +277,13 @@ impl Instance for Wasi {
         });
 
         Ok(())
+    }
+}
+
+impl EngineGetter for Wasi {
+    fn new_engine() -> Result<wasmtime::Engine, Error> {
+        let engine = wasmtime::Engine::new(wasmtime::Config::default().interruptable(true).cranelift_opt_level(OptLevel::Speed))?;
+        Ok(engine)
     }
 }
 
