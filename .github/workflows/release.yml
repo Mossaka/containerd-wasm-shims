@@ -55,16 +55,11 @@ jobs:
           name: containerd-shim-wasmserver-v1
           path: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
       - name: upload binary to GitHub release
-        uses: svenstaro/upload-release-action@2.2.1
+        uses: Shopify/upload-to-release@v1
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
-          asset_name: containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
-          overwrite: true
-          prerelease: true
-          tag: ${{ github.ref }}
-          body: |
-            Release of containerd-shim-wasmserver-v1:${{ env.RELEASE_VERSION }} for amd64
+          name: containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
+          path: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: set env
         run: echo "RELEASE_VERSION=${GITHUB_REF:17}" >> $GITHUB_ENV # refs/tags/image-v1.0.0 substring starting at 1.0.0
       - name: setup buildx
