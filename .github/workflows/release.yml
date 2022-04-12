@@ -55,7 +55,7 @@ jobs:
           name: containerd-shim-wasmserver-v1
           path: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
       - name: upload binary to GitHub release
-        uses: Shopify/upload-to-release@v1
+        uses: Shopify/upload-to-release@v1.0.1
         with:
           name: containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
           path: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
