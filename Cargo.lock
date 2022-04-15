@@ -3189,6 +3189,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "spin-config"
 version = "0.1.0"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#412b52800dc9f594ff28cf45112ed6fbaf72a169"
 dependencies = [
  "anyhow",
  "serde",
@@ -3199,6 +3200,7 @@ dependencies = [
 [[package]]
 name = "spin-engine"
 version = "0.1.0"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#412b52800dc9f594ff28cf45112ed6fbaf72a169"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
@@ -3221,6 +3223,7 @@ dependencies = [
 [[package]]
 name = "spin-http-engine"
 version = "0.1.0"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#412b52800dc9f594ff28cf45112ed6fbaf72a169"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3255,6 +3258,7 @@ dependencies = [
 [[package]]
 name = "spin-loader"
 version = "0.1.0"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#412b52800dc9f594ff28cf45112ed6fbaf72a169"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3285,6 +3289,7 @@ dependencies = [
 [[package]]
 name = "spin-manifest"
 version = "0.1.0"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#412b52800dc9f594ff28cf45112ed6fbaf72a169"
 dependencies = [
  "serde",
  "spin-config",
@@ -4188,6 +4193,7 @@ dependencies = [
 [[package]]
 name = "wasi-outbound-http"
 version = "0.1.0"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#412b52800dc9f594ff28cf45112ed6fbaf72a169"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",

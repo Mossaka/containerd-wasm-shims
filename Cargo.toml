@@ -19,8 +19,8 @@ wasmtime = "^0.34"
 wasmtime-wasi = "^0.34"
 serde_json = "1.0"
 containerd-shim = "0.3.0"
-spin-http-engine =  { path = "/home/mossaka/developer/spin/crates/http" }
-spin-loader = { path = "/home/mossaka/developer/spin/crates/loader"}
+spin-http-engine =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/spin-test-with-custom-engine" }
+spin-loader =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/spin-test-with-custom-engine" }
 tempfile = "3.3.0"
 tokio = { version = "1.11", features = [ "rt" ] }
 
