@@ -15,6 +15,10 @@ This project uses the [Wasm Component Model](https://github.com/WebAssembly/comp
 
 This shim uses asp.net core server. 
 
+## spin shim
+
+This shim uses [spin](https://github.com/fermyon/spin) engine. 
+
 ### build the host
 Run `make build`
 
