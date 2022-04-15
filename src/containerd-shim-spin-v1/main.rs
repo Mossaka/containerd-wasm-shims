@@ -8,7 +8,6 @@ use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
 use spin_http_engine::HttpTrigger;
 use spin_loader;
-use std::fs::OpenOptions;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
@@ -17,9 +16,6 @@ use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
 use tokio::runtime::Runtime;
 use wasmtime::OptLevel;
-use wasmtime::{Linker, Module, Store};
-use wasmtime_wasi::sync::TcpListener;
-use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
 pub struct Wasi {
     interupt: Arc<RwLock<Option<wasmtime::InterruptHandle>>>,
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
@@ -87,11 +83,9 @@ impl Instance for Wasi {
                     }
                 };
 
-                info!("the path to spin.toml is: {}", mod_path.display());
-                info!("the working path is: {}", working_dir.display());
-
                 info!("notifying main thread we are about to start");
                 tx.send(Ok(())).unwrap();
+
                 info!("starting spin");
                 let rt = Runtime::new().unwrap();
                 let app = rt
