@@ -54,11 +54,15 @@ jobs:
         with:
           name: containerd-shim-wasmserver-v1
           path: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
-      - name: upload binary to GitHub release
-        uses: Shopify/upload-to-release@v1.0.1
+      - name: upload binary to canary GitHub release
+        uses: svenstaro/upload-release-action@2.2.1
         with:
-          name: containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
-          path: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: set env
-        run: echo "RELEASE_VERSION=${GITHUB_REF:17}" >> $GITHUB_ENV # refs/tags/image-v1.0.0 substring starting at 1.0.0
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
+          asset_name: containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
+          tag: canary
+          overwrite: true
+          prerelease: true
+          body: |
+            This is a "canary" release of the most recent commits on our main branch. Canary is **not stable**.
+            It is only intended for developers wishing to try out the latest features, some of which may not be fully implemented.
