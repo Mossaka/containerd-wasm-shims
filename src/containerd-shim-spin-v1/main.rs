@@ -1,17 +1,13 @@
-use anyhow::Context;
 use chrono::{DateTime, Utc};
 use containerd_shim as shim;
 use containerd_shim_wasmtime_v1::sandbox::error::Error;
 use containerd_shim_wasmtime_v1::sandbox::instance::EngineGetter;
 use containerd_shim_wasmtime_v1::sandbox::oci;
 use containerd_shim_wasmtime_v1::sandbox::Instance;
-use containerd_shim_wasmtime_v1::sandbox::{
-    instance::maybe_open_stdio, instance::InstanceConfig, ShimCli,
-};
+use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
 use spin_http_engine::HttpTrigger;
-use tokio::runtime::Runtime;
-use wasmtime::OptLevel;
+use spin_loader;
 use std::fs::OpenOptions;
 use std::path::Path;
 use std::path::PathBuf;
@@ -19,10 +15,11 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
+use tokio::runtime::Runtime;
+use wasmtime::OptLevel;
 use wasmtime::{Linker, Module, Store};
-use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::sync::TcpListener;
-use spin_loader;
+use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
 pub struct Wasi {
     interupt: Arc<RwLock<Option<wasmtime::InterruptHandle>>>,
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
@@ -35,14 +32,12 @@ pub struct Wasi {
     bundle: String,
 }
 
-pub fn prepare_module(
-    bundle: String,
-) -> Result<(PathBuf, PathBuf), Error> {
+pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
     let mut spec = oci::load(Path::new(&bundle).join("config.json").to_str().unwrap())?;
 
     spec.canonicalize_rootfs(&bundle)
         .map_err(|err| Error::Others(format!("could not canonicalize rootfs: {}", err)))?;
-    
+
     // let rootfs = oci::get_rootfs(&spec)?;
     // let args = oci::get_args(&spec);
     // let env = oci::env_to_wasi(&spec);
@@ -84,7 +79,6 @@ impl Instance for Wasi {
         thread::Builder::new()
             .name(self.id.clone())
             .spawn(move || {
-                
                 let (working_dir, mod_path) = match prepare_module(bundle) {
                     Ok(f) => f,
                     Err(err) => {
@@ -99,9 +93,19 @@ impl Instance for Wasi {
                 info!("notifying main thread we are about to start");
                 tx.send(Ok(())).unwrap();
                 info!("starting spin");
-                let rt  = Runtime::new().unwrap();
-                let app = rt.block_on(spin_loader::from_file(mod_path, working_dir)).unwrap();
-                let http = rt.block_on(HttpTrigger::new("0.0.0.0:80".to_string(), app, None, None, Some(engine.clone()))).unwrap();
+                let rt = Runtime::new().unwrap();
+                let app = rt
+                    .block_on(spin_loader::from_file(mod_path, working_dir))
+                    .unwrap();
+                let http = rt
+                    .block_on(HttpTrigger::new(
+                        "0.0.0.0:80".to_string(),
+                        app,
+                        None,
+                        None,
+                        Some(engine.clone()),
+                    ))
+                    .unwrap();
                 rt.block_on(http.run()).unwrap();
             })?;
 
@@ -163,7 +167,11 @@ impl Instance for Wasi {
 
 impl EngineGetter for Wasi {
     fn new_engine() -> Result<wasmtime::Engine, Error> {
-        let engine = wasmtime::Engine::new(wasmtime::Config::default().interruptable(true).cranelift_opt_level(OptLevel::Speed))?;
+        let engine = wasmtime::Engine::new(
+            wasmtime::Config::default()
+                .interruptable(true)
+                .cranelift_opt_level(OptLevel::Speed),
+        )?;
         Ok(engine)
     }
 }

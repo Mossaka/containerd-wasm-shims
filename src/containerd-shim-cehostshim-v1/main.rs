@@ -20,7 +20,7 @@ use std::sync::mpsc::Sender;
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
 use uuid::Uuid;
-use wasmtime::{Linker, Module, Store, OptLevel};
+use wasmtime::{Linker, Module, OptLevel, Store};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
 
 wit_bindgen_wasmtime::import!("./src/containerd-shim-cehostshim-v1/wasi-ce.wit");
@@ -274,7 +274,11 @@ impl Instance for Wasi {
 
 impl EngineGetter for Wasi {
     fn new_engine() -> Result<wasmtime::Engine, Error> {
-        let engine = wasmtime::Engine::new(wasmtime::Config::default().interruptable(true).cranelift_opt_level(OptLevel::Speed))?;
+        let engine = wasmtime::Engine::new(
+            wasmtime::Config::default()
+                .interruptable(true)
+                .cranelift_opt_level(OptLevel::Speed),
+        )?;
         Ok(engine)
     }
 }
