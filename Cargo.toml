@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-containerd-shim-wasmtime-v1 = { git="https://github.com/Mossaka/runwasi", branch="jiazho/opt" }
-wit-bindgen-wasmtime        = { git = "https://github.com/bytecodealliance/wit-bindgen", branch = "main" }
+containerd-shim-wasmtime-v1 = { path = "/home/mossaka/developer/runwasi/crates/containerd-shim-wasmtime-v1" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "2f46ce4cc072107153da0cefe15bdc69aa5b84d0" }
 cloudevents-sdk  = { default-features = false, git = "https://github.com/Mossaka/sdk-rust.git", branch = "master" }
 url = "2.2.2"
 rouille = "3.5.0"
@@ -15,10 +15,14 @@ uuid = "0.8.2"
 anyhow = "1.0"
 chrono = "0.4.19"
 log = "0.4"
-wasmtime = "^0.35"
-wasmtime-wasi = "^0.35"
+wasmtime = "^0.34"
+wasmtime-wasi = "^0.34"
 serde_json = "1.0"
 containerd-shim = "0.3.0"
+spin-http-engine =  { path = "/home/mossaka/developer/spin/crates/http" }
+spin-loader = { path = "/home/mossaka/developer/spin/crates/loader"}
+tempfile = "3.3.0"
+tokio = { version = "1.11", features = [ "rt" ] }
 
 [[bin]]
 name = "containerd-shim-aspdotnet-v1"
@@ -27,3 +31,7 @@ path = "src/containerd-shim-aspdotnet-v1/main.rs"
 [[bin]]
 name = "containerd-shim-cehostshim-v1"
 path = "src/containerd-shim-cehostshim-v1/main.rs"
+
+[[bin]]
+name = "containerd-shim-spin-v1"
+path = "src/containerd-shim-spin-v1/main.rs"
