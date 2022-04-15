@@ -19,7 +19,7 @@ jobs:
         run: cargo build --verbose
   release:
     permissions: 
-      contents: read
+      contents: write
       packages: write 
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
@@ -54,15 +54,13 @@ jobs:
         with:
           name: containerd-shim-wasmserver-v1
           path: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
-      - name: upload binary to canary GitHub release
-        uses: svenstaro/upload-release-action@2.2.1
+      - name: Recreate canary tag and release
+        uses: ncipollo/release-action@v1.10.0
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
-          asset_name: containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
           tag: canary
-          overwrite: true
+          allowUpdates: true
           prerelease: true
+          artifacts: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
           body: |
             This is a "canary" release of the most recent commits on our main branch. Canary is **not stable**.
             It is only intended for developers wishing to try out the latest features, some of which may not be fully implemented.
