@@ -9,16 +9,16 @@ use containerd_shim_wasmtime_v1::sandbox::{
     instance::maybe_open_stdio, instance::InstanceConfig, ShimCli,
 };
 use log::info;
-use wasmtime::OptLevel;
 use std::fs::OpenOptions;
 use std::path::Path;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
+use wasmtime::OptLevel;
 use wasmtime::{Linker, Module, Store};
-use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::sync::TcpListener;
+use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
 pub struct Wasi {
     interupt: Arc<RwLock<Option<wasmtime::InterruptHandle>>>,
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
@@ -82,7 +82,8 @@ pub fn prepare_module(
     }
 
     let ip_address = "0.0.0.0:80";
-    let stdlistener = std::net::TcpListener::bind(ip_address).with_context(|| format!("failed to bind to address '0.0.0.0:80'"))?;
+    let stdlistener = std::net::TcpListener::bind(ip_address)
+        .with_context(|| format!("failed to bind to address '0.0.0.0:80'"))?;
 
     let _ = stdlistener.set_nonblocking(true)?;
     let tcplisten = TcpListener::from_std(stdlistener);
@@ -204,24 +205,23 @@ impl Instance for Wasi {
                 info!("notifying main thread we are about to start");
                 tx.send(Ok(())).unwrap();
 
-
                 info!("starting wasi instance");
 
                 let (lock, cvar) = &*exit_code;
-                    let _ret = match f.call(&mut store, &mut vec![], &mut vec![]) {
-                        Ok(_) => {
-                            info!("exit code: {}", 0);
-                            let mut ec = lock.lock().unwrap();
-                            *ec = Some((0, Utc::now()));
-                        }
-                        Err(_) => {
-                            info!("exit code: {}", 137);
-                            let mut ec = lock.lock().unwrap();
-                            *ec = Some((137, Utc::now()));
-                        }
-                    };
+                let _ret = match f.call(&mut store, &mut vec![], &mut vec![]) {
+                    Ok(_) => {
+                        info!("exit code: {}", 0);
+                        let mut ec = lock.lock().unwrap();
+                        *ec = Some((0, Utc::now()));
+                    }
+                    Err(_) => {
+                        info!("exit code: {}", 137);
+                        let mut ec = lock.lock().unwrap();
+                        *ec = Some((137, Utc::now()));
+                    }
+                };
 
-                    cvar.notify_all();
+                cvar.notify_all();
             })?;
 
         info!("Waiting for start notification");
@@ -282,7 +282,11 @@ impl Instance for Wasi {
 
 impl EngineGetter for Wasi {
     fn new_engine() -> Result<wasmtime::Engine, Error> {
-        let engine = wasmtime::Engine::new(wasmtime::Config::default().interruptable(true).cranelift_opt_level(OptLevel::Speed))?;
+        let engine = wasmtime::Engine::new(
+            wasmtime::Config::default()
+                .interruptable(true)
+                .cranelift_opt_level(OptLevel::Speed),
+        )?;
         Ok(engine)
     }
 }
