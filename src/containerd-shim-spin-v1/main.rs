@@ -17,7 +17,6 @@ use std::thread;
 use tokio::runtime::Runtime;
 use wasmtime::OptLevel;
 pub struct Wasi {
-    interupt: Arc<RwLock<Option<wasmtime::InterruptHandle>>>,
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
     engine: wasmtime::Engine,
 
@@ -51,7 +50,6 @@ pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
 impl Instance for Wasi {
     fn new(id: String, cfg: &InstanceConfig) -> Self {
         Wasi {
-            interupt: Arc::new(RwLock::new(None)),
             exit_code: Arc::new((Mutex::new(None), Condvar::new())),
             engine: cfg.get_engine(),
             id,
@@ -65,7 +63,6 @@ impl Instance for Wasi {
         let engine = self.engine.clone();
 
         let exit_code = self.exit_code.clone();
-        let interupt = self.interupt.clone();
         let (tx, rx) = channel::<Result<(), Error>>();
         let bundle = self.bundle.clone();
         let stdin = self.stdin.clone();
@@ -88,19 +85,19 @@ impl Instance for Wasi {
 
                 info!("starting spin");
                 let rt = Runtime::new().unwrap();
-                let app = rt
-                    .block_on(spin_loader::from_file(mod_path, working_dir))
-                    .unwrap();
-                let http = rt
-                    .block_on(HttpTrigger::new(
+                rt.block_on(async {
+                    let app = spin_loader::from_file(mod_path, working_dir).await.unwrap();
+                    let http = HttpTrigger::new(
                         "0.0.0.0:80".to_string(),
                         app,
                         None,
                         None,
                         Some(engine.clone()),
-                    ))
+                    )
+                    .await
                     .unwrap();
-                rt.block_on(http.run()).unwrap();
+                    http.run().await.unwrap();
+                })
             })?;
 
         info!("Waiting for start notification");
@@ -128,14 +125,8 @@ impl Instance for Wasi {
             ));
         }
 
-        let interupt = self.interupt.read().unwrap();
-        let i = interupt.as_ref().ok_or(Error::FailedPrecondition(
-            "module is not running".to_string(),
-        ))?;
+        //TODO: kill the spin server
 
-        // TODO: exit the server
-
-        i.interrupt();
         Ok(())
     }
 
