@@ -57,7 +57,7 @@ jobs:
       - name: Recreate canary tag and release
         uses: ncipollo/release-action@v1.10.0
         with:
-          tag: canary
+          tag: env.RELEASE_VERSION
           allowUpdates: true
           prerelease: true
           artifacts: _dist/containerd-shim-wasmserver-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
