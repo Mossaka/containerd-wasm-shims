@@ -88,3 +88,11 @@ jobs:
             ghcr.io/mossaka/spinhelloworld:${{ env.RELEASE_VERSION }}
             ghcr.io/mossaka/spinhelloworld:latest 
           context: images/spin
+      - name: build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: |
+            ghcr.io/mossaka/spinkitchensink:${{ env.RELEASE_VERSION }}
+            ghcr.io/mossaka/spinkitchensink:latest 
+          context: images/spin-kitchensink
