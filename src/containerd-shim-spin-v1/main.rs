@@ -80,14 +80,25 @@ impl Instance for Wasi {
                     }
                 };
 
+                info!("loading module: {}", mod_path.display());
+                info!("working dir: {}", working_dir.display());
+
                 info!("notifying main thread we are about to start");
                 tx.send(Ok(())).unwrap();
 
                 info!("starting spin");
                 let rt = Runtime::new().unwrap();
                 rt.block_on(async {
-                    let app = spin_loader::from_file(mod_path, working_dir).await.unwrap();
-                    let http = HttpTrigger::new(
+                    let app = match spin_loader::from_file(mod_path, working_dir).await {
+                        Ok(app) => app,
+                        Err(err) => {
+                            info!("error loading module: {}", err);
+                            tx.send(Err(Error::Any(err))).unwrap();
+                            return;
+                        }
+                    };
+
+                    let http = match HttpTrigger::new(
                         "0.0.0.0:80".to_string(),
                         app,
                         None,
@@ -95,8 +106,22 @@ impl Instance for Wasi {
                         Some(engine.clone()),
                     )
                     .await
-                    .unwrap();
-                    http.run().await.unwrap();
+                    {
+                        Ok(http) => http,
+                        Err(err) => {
+                            info!("error starting http trigger: {}", err);
+                            tx.send(Err(Error::Any(err))).unwrap();
+                            return;
+                        }
+                    };
+
+                    match http.run().await {
+                        Ok(_) => (),
+                        Err(err) => {
+                            info!("http trigger exited with error: {}", err);
+                            tx.send(Err(Error::Any(err))).unwrap();
+                        }
+                    }
                 })
             })?;
 
