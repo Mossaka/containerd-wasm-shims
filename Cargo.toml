@@ -23,6 +23,8 @@ spin-http-engine =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/
 spin-loader =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/spin-test-with-custom-engine" }
 tempfile = "3.3.0"
 tokio = { version = "1.11", features = [ "rt" ] }
+# see problem: https://github.com/sfackler/rust-openssl/issues/1021#issuecomment-605602642
+openssl = { version = "0.10", features = ["vendored"] }
 
 [[bin]]
 name = "containerd-shim-aspdotnet-v1"

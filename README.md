@@ -31,3 +31,6 @@ Run `make install`
 ### test
 Run `make run` or `make run_cpp` or `make run_dotnet`
 
+> If you want to compile a statically linked binary
+> you can do so by running 
+> `RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --target x86_64-unknown-linux-musl`. 
