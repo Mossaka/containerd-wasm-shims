@@ -3,6 +3,7 @@ INSTALL ?= install
 TEST_IMG_NAME ?= wasmtest:latest
 TEST_IMG_NAME_CPP ?= wasmtest_cpp:latest
 TEST_IMG_NAME_DOTNET ?= wasmtest_dotnet:latest
+TEST_IMG_NAME_SPINK ?= wasmtest_spink:latest
 
 CONTAINERD_NAMESPACE ?= default
 
@@ -27,7 +28,11 @@ test/out_dotnet/img.tar: images/aspnet/Dockerfile
 	mkdir -p $(@D)
 	sudo docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME_DOTNET) ./images/aspnet
 
-load: test/out_rs/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar
+test/out_spin-k/img.tar: images/spin-kitchensink/Dockerfile
+	mkdir -p $(@D)
+	sudo docker buildx build --platform=wasi/wasm -o type=docker,dest=$@ -t $(TEST_IMG_NAME_SPINK) ./images/spin-kitchensink	
+
+load: test/out_rs/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar test/out_spin-k/img.tar
 	sudo ctr -n $(CONTAINERD_NAMESPACE) image import $^
 
 run:
@@ -38,6 +43,9 @@ run_cpp:
 
 run_dotnet:
 	sudo ctr run --cni --rm --runtime=io.containerd.aspdotnet.v1 docker.io/library/$(TEST_IMG_NAME_DOTNET) testdotnet
+
+run_spink:
+	sudo ctr run --cni --rm --runtime=io.containerd.aspdotnet.v1 docker.io/library/$(TEST_IMG_NAME_SPINK) testspink
 
 clean:
 	sudo rm -rf ./test
