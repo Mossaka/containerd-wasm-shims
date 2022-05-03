@@ -1,0 +1,15 @@
+[package]
+name = "containerd-shim-aspdotnet-v1"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+chrono = "0.4.19"
+containerd-shim = "0.3.0"
+containerd-shim-wasmtime-v1 = { git = "https://github.com/Mossaka/runwasi", branch = "jiazho/precompile" }
+log = "0.4"
+wasmtime = "^0.34"
+wasmtime-wasi = "^0.34"

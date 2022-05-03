@@ -1,0 +1,16 @@
+[package]
+name = "containerd-shim-spin-v1"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.19"
+containerd-shim = "0.3.0"
+containerd-shim-wasmtime-v1 = { git = "https://github.com/Mossaka/runwasi", branch = "jiazho/precompile" }
+log = "0.4"
+spin-http-engine =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/spin-test-with-custom-engine" }
+spin-loader =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/spin-test-with-custom-engine" }
+tokio = { version = "1.11", features = [ "rt" ] }
+wasmtime = "^0.34"
