@@ -19,8 +19,11 @@ wasmtime = "^0.34"
 wasmtime-wasi = "^0.34"
 serde_json = "1.0"
 containerd-shim = "0.3.0"
-spin-http-engine =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/spin-test-with-custom-engine" }
-spin-loader =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/spin-test-with-custom-engine" }
+spin-trigger = { git = "https://github.com/Mossaka/spin", branch = "jiazho/builder_with_engine" } 
+spin-engine = { git = "https://github.com/Mossaka/spin", branch = "jiazho/builder_with_engine" }
+spin-http-engine =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/builder_with_engine" }
+spin-loader =  { git = "https://github.com/Mossaka/spin", branch = "jiazho/builder_with_engine" }
+spin-manifest = { git = "https://github.com/Mossaka/spin", branch = "jiazho/builder_with_engine" }
 tempfile = "3.3.0"
 tokio = { version = "1.11", features = [ "rt" ] }
 # see problem: https://github.com/sfackler/rust-openssl/issues/1021#issuecomment-605602642
