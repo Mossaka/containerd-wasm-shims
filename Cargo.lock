@@ -613,8 +613,11 @@ dependencies = [
  "containerd-shim",
  "containerd-shim-wasmtime-v1",
  "log",
+ "spin-engine",
  "spin-http-engine",
  "spin-loader",
+ "spin-manifest",
+ "spin-trigger",
  "tokio",
  "wasmtime",
 ]
@@ -1596,7 +1599,7 @@ dependencies = [
  "rustls 0.20.4",
  "rustls-native-certs",
  "tokio",
- "tokio-rustls 0.23.3",
+ "tokio-rustls 0.23.4",
 ]
 
 [[package]]
@@ -2269,9 +2272,9 @@ dependencies = [
 
 [[package]]
 name = "openssl"
-version = "0.10.39"
+version = "0.10.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28f3916d46d9d813a62d7b7d2724d7b14785ac999fb623d990ee4603f9122742"
+checksum = "fb81a6430ac911acb25fe5ac8f1d2af1b4ea8a4fdfda0f1ee4292af2e2d8eb0e"
 dependencies = [
  "bitflags",
  "cfg-if 1.0.0",
@@ -2315,10 +2318,12 @@ dependencies = [
 [[package]]
 name = "outbound-redis"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#d8df26185f6d6d64a207d443955e1543ae58393d"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
 dependencies = [
  "anyhow",
  "redis",
+ "spin-engine",
+ "spin-manifest",
  "wit-bindgen-wasmtime",
 ]
 
@@ -2796,7 +2801,7 @@ dependencies = [
  "serde_urlencoded",
  "tokio",
  "tokio-native-tls",
- "tokio-rustls 0.23.3",
+ "tokio-rustls 0.23.4",
  "tokio-util 0.6.9",
  "url 2.2.2",
  "wasm-bindgen",
@@ -3283,7 +3288,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "spin-config"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#d8df26185f6d6d64a207d443955e1543ae58393d"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
 dependencies = [
  "anyhow",
  "serde",
@@ -3294,12 +3299,11 @@ dependencies = [
 [[package]]
 name = "spin-engine"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#d8df26185f6d6d64a207d443955e1543ae58393d"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
  "dirs",
- "outbound-redis",
  "sanitize-filename",
  "spin-config",
  "spin-manifest",
@@ -3309,8 +3313,6 @@ dependencies = [
  "tracing-futures",
  "wasi-cap-std-sync",
  "wasi-common",
- "wasi-experimental-http-wasmtime 0.9.0 (git+https://github.com/deislabs/wasi-experimental-http?rev=4ed321d6943f75546e38bba80e14a59797aa29de)",
- "wasi-outbound-http",
  "wasmtime",
  "wasmtime-wasi",
 ]
@@ -3318,10 +3320,11 @@ dependencies = [
 [[package]]
 name = "spin-http-engine"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#d8df26185f6d6d64a207d443955e1543ae58393d"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
 dependencies = [
  "anyhow",
  "async-trait",
+ "atty",
  "bytes 1.1.0",
  "cap-std",
  "ctrlc",
@@ -3335,9 +3338,10 @@ dependencies = [
  "serde",
  "spin-engine",
  "spin-manifest",
+ "spin-trigger",
  "tls-listener",
  "tokio",
- "tokio-rustls 0.23.3",
+ "tokio-rustls 0.23.4",
  "tracing",
  "tracing-futures",
  "tracing-subscriber 0.3.11",
@@ -3353,7 +3357,7 @@ dependencies = [
 [[package]]
 name = "spin-loader"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#d8df26185f6d6d64a207d443955e1543ae58393d"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3384,10 +3388,27 @@ dependencies = [
 [[package]]
 name = "spin-manifest"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#d8df26185f6d6d64a207d443955e1543ae58393d"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
 dependencies = [
+ "anyhow",
+ "indexmap",
  "serde",
  "spin-config",
+ "thiserror",
+]
+
+[[package]]
+name = "spin-trigger"
+version = "0.1.0"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "outbound-redis",
+ "spin-engine",
+ "spin-manifest",
+ "wasi-outbound-http",
+ "wasmtime",
 ]
 
 [[package]]
@@ -3599,7 +3620,7 @@ dependencies = [
  "pin-project-lite",
  "thiserror",
  "tokio",
- "tokio-rustls 0.23.3",
+ "tokio-rustls 0.23.4",
 ]
 
 [[package]]
@@ -3656,9 +3677,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
-version = "0.23.3"
+version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4151fda0cf2798550ad0b34bcfc9b9dcc2a9d2471c895c68f3a8818e54f2389e"
+checksum = "c43ee83903113e03984cb9e5cebe6c04a5116269e900e3ddba8f068a62adda59"
 dependencies = [
  "rustls 0.20.4",
  "tokio",
@@ -4288,17 +4309,20 @@ dependencies = [
 [[package]]
 name = "wasi-outbound-http"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/spin-test-with-custom-engine#d8df26185f6d6d64a207d443955e1543ae58393d"
+source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
  "futures",
  "http 0.2.7",
  "reqwest",
+ "spin-engine",
+ "spin-manifest",
  "tokio",
  "tracing",
  "tracing-futures",
  "url 2.2.2",
+ "wasi-experimental-http-wasmtime 0.9.0 (git+https://github.com/deislabs/wasi-experimental-http?rev=4ed321d6943f75546e38bba80e14a59797aa29de)",
  "wit-bindgen-wasmtime",
 ]
 

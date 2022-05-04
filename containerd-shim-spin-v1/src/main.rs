@@ -8,14 +8,17 @@ use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
 use spin_http_engine::HttpTrigger;
 use spin_loader;
+use spin_trigger::Trigger;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
 use tokio::runtime::Runtime;
+use wasmtime::Linker;
 use wasmtime::OptLevel;
+
 pub struct Wasi {
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
     engine: wasmtime::Engine,
@@ -45,6 +48,45 @@ pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
     let working_dir = oci::get_root(&spec);
     let mod_path = working_dir.join("spin.toml");
     Ok((working_dir.to_path_buf(), mod_path))
+}
+
+impl Wasi {
+    async fn build_spin_application(
+        mod_path: PathBuf,
+        working_dir: PathBuf,
+    ) -> Result<spin_manifest::Application, Error> {
+        Ok(spin_loader::from_file(mod_path, working_dir).await?)
+    }
+
+    async fn build_spin_trigger(
+        engine: wasmtime::Engine,
+        app: spin_manifest::Application,
+        log_dir: Option<PathBuf>,
+    ) -> Result<HttpTrigger, Error> {
+        let config = spin_engine::ExecutionContextConfiguration {
+            components: app.components,
+            label: app.info.name,
+            log_dir,
+            config_resolver: app.config_resolver,
+        };
+        let engine = engine;
+        let mut builder = spin_engine::Builder::with_wasmtime_engine(config, engine.clone());
+
+        HttpTrigger::configure_execution_context(&mut builder)?;
+        let execution_ctx = builder.build().await?;
+        let trigger_config = app.info.trigger.try_into().unwrap();
+        let component_triggers: spin_manifest::ComponentMap<spin_manifest::HttpConfig> = app
+            .component_triggers
+            .into_iter()
+            .map(|(id, trigger)| Ok((id.clone(), trigger.try_into().unwrap())))
+            .collect::<Result<_, Error>>()?;
+
+        Ok(HttpTrigger::new(
+            execution_ctx,
+            trigger_config,
+            component_triggers,
+        )?)
+    }
 }
 
 impl Instance for Wasi {
@@ -89,33 +131,30 @@ impl Instance for Wasi {
                 info!("starting spin");
                 let rt = Runtime::new().unwrap();
                 rt.block_on(async {
-                    let app = match spin_loader::from_file(mod_path, working_dir).await {
+                    let app = match Wasi::build_spin_application(mod_path, working_dir).await {
                         Ok(app) => app,
                         Err(err) => {
-                            info!("error loading module: {}", err);
-                            tx.send(Err(Error::Any(err))).unwrap();
+                            tx.send(Err(err)).unwrap();
                             return;
                         }
                     };
 
-                    let http = match HttpTrigger::new(
-                        "0.0.0.0:80".to_string(),
-                        app,
-                        None,
-                        None,
-                        Some(engine.clone()),
-                    )
-                    .await
+                    let http_trigger =
+                        match Wasi::build_spin_trigger(engine.clone(), app, None).await {
+                            Ok(http_trigger) => http_trigger,
+                            Err(err) => {
+                                tx.send(Err(err)).unwrap();
+                                return;
+                            }
+                        };
+
+                    match http_trigger
+                        .run(spin_http_engine::HttpTriggerExecutionConfig::new(
+                            "0.0.0.0:80".to_string(),
+                            None,
+                        ))
+                        .await
                     {
-                        Ok(http) => http,
-                        Err(err) => {
-                            info!("error starting http trigger: {}", err);
-                            tx.send(Err(Error::Any(err))).unwrap();
-                            return;
-                        }
-                    };
-
-                    match http.run().await {
                         Ok(_) => (),
                         Err(err) => {
                             info!("http trigger exited with error: {}", err);
@@ -177,12 +216,15 @@ impl Instance for Wasi {
 
 impl EngineGetter for Wasi {
     fn new_engine() -> Result<wasmtime::Engine, Error> {
-        let engine = wasmtime::Engine::new(
-            wasmtime::Config::default()
-                .interruptable(true)
-                .cranelift_opt_level(OptLevel::Speed),
-        )?;
-        Ok(engine)
+        let mut config = wasmtime::Config::default();
+        config
+            .cache_config_load_default()?
+            .wasm_multi_memory(true)
+            .wasm_module_linking(true)
+            .interruptable(true)
+            .cranelift_opt_level(OptLevel::Speed);
+
+        Ok(wasmtime::Engine::new(&config)?)
     }
 }
 
