@@ -21,7 +21,7 @@ use wasmtime::OptLevel;
 
 pub struct Wasi {
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
-    engine: wasmtime::Engine,
+    engine: spin_engine::Engine,
 
     id: String,
     stdin: String,
@@ -59,7 +59,7 @@ impl Wasi {
     }
 
     async fn build_spin_trigger(
-        engine: wasmtime::Engine,
+        engine: spin_engine::Engine,
         app: spin_manifest::Application,
         log_dir: Option<PathBuf>,
     ) -> Result<HttpTrigger, Error> {
@@ -69,8 +69,7 @@ impl Wasi {
             log_dir,
             config_resolver: app.config_resolver,
         };
-        let engine = engine;
-        let mut builder = spin_engine::Builder::with_wasmtime_engine(config, engine.clone());
+        let mut builder = spin_engine::Builder::with_engine(config, engine)?;
 
         HttpTrigger::configure_execution_context(&mut builder)?;
         let execution_ctx = builder.build().await?;
@@ -90,7 +89,9 @@ impl Wasi {
 }
 
 impl Instance for Wasi {
-    fn new(id: String, cfg: &InstanceConfig) -> Self {
+    type E = spin_engine::Engine;
+    fn new(id: String, cfg: Option<&InstanceConfig<Self::E>>) -> Self {
+        let cfg = cfg.unwrap();
         Wasi {
             exit_code: Arc::new((Mutex::new(None), Condvar::new())),
             engine: cfg.get_engine(),
@@ -139,14 +140,13 @@ impl Instance for Wasi {
                         }
                     };
 
-                    let http_trigger =
-                        match Wasi::build_spin_trigger(engine.clone(), app, None).await {
-                            Ok(http_trigger) => http_trigger,
-                            Err(err) => {
-                                tx.send(Err(err)).unwrap();
-                                return;
-                            }
-                        };
+                    let http_trigger = match Wasi::build_spin_trigger(engine, app, None).await {
+                        Ok(http_trigger) => http_trigger,
+                        Err(err) => {
+                            tx.send(Err(err)).unwrap();
+                            return;
+                        }
+                    };
 
                     match http_trigger
                         .run(spin_http_engine::HttpTriggerExecutionConfig::new(
@@ -215,19 +215,18 @@ impl Instance for Wasi {
 }
 
 impl EngineGetter for Wasi {
-    fn new_engine() -> Result<wasmtime::Engine, Error> {
-        let mut config = wasmtime::Config::default();
+    type E = spin_engine::Engine;
+    fn new_engine() -> Result<Self::E, Error> {
+        let mut config = wasmtime::Config::new();
         config
             .cache_config_load_default()?
-            .wasm_multi_memory(true)
-            .wasm_module_linking(true)
             .interruptable(true)
             .cranelift_opt_level(OptLevel::Speed);
-
-        Ok(wasmtime::Engine::new(&config)?)
+        let engine = Self::E::new(config)?;
+        Ok(engine)
     }
 }
 
 fn main() {
-    shim::run::<ShimCli<Wasi>>("io.containerd.spin.v1", None);
+    shim::run::<ShimCli<Wasi, _>>("io.containerd.spin.v1", None);
 }
