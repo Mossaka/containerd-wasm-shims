@@ -2318,7 +2318,7 @@ dependencies = [
 [[package]]
 name = "outbound-redis"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#4265388c2edaad8b26086d4a0596eecd3067dba3"
 dependencies = [
  "anyhow",
  "redis",
@@ -3288,7 +3288,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "spin-config"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#4265388c2edaad8b26086d4a0596eecd3067dba3"
 dependencies = [
  "anyhow",
  "serde",
@@ -3299,10 +3299,11 @@ dependencies = [
 [[package]]
 name = "spin-engine"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#4265388c2edaad8b26086d4a0596eecd3067dba3"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
+ "cap-std",
  "dirs",
  "sanitize-filename",
  "spin-config",
@@ -3320,7 +3321,7 @@ dependencies = [
 [[package]]
 name = "spin-http-engine"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#4265388c2edaad8b26086d4a0596eecd3067dba3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3357,7 +3358,7 @@ dependencies = [
 [[package]]
 name = "spin-loader"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#4265388c2edaad8b26086d4a0596eecd3067dba3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3378,6 +3379,7 @@ dependencies = [
  "spin-manifest",
  "tempfile",
  "tokio",
+ "tokio-util 0.6.9",
  "toml",
  "tracing",
  "tracing-futures",
@@ -3388,7 +3390,7 @@ dependencies = [
 [[package]]
 name = "spin-manifest"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#4265388c2edaad8b26086d4a0596eecd3067dba3"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -3400,7 +3402,7 @@ dependencies = [
 [[package]]
 name = "spin-trigger"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#4265388c2edaad8b26086d4a0596eecd3067dba3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4309,7 +4311,7 @@ dependencies = [
 [[package]]
 name = "wasi-outbound-http"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#38771ed443fb6c8ad6175f36a35ad49cbaee9e1b"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#4265388c2edaad8b26086d4a0596eecd3067dba3"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",

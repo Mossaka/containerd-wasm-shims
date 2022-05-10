@@ -6,6 +6,8 @@ use containerd_shim_wasmtime_v1::sandbox::oci;
 use containerd_shim_wasmtime_v1::sandbox::Instance;
 use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
+use spin_engine::io::CustomLogPipes;
+use spin_engine::io::FollowComponents;
 use spin_http_engine::HttpTrigger;
 use spin_loader;
 use spin_trigger::Trigger;
@@ -54,8 +56,10 @@ impl Wasi {
     async fn build_spin_application(
         mod_path: PathBuf,
         working_dir: PathBuf,
+        stdout_pipe_path: PathBuf,
+        stderr_pipe_path: PathBuf
     ) -> Result<spin_manifest::Application, Error> {
-        Ok(spin_loader::from_file(mod_path, working_dir).await?)
+        Ok(spin_loader::from_file(mod_path, working_dir, &None).await?)
     }
 
     async fn build_spin_trigger(
@@ -63,11 +67,14 @@ impl Wasi {
         app: spin_manifest::Application,
         log_dir: Option<PathBuf>,
     ) -> Result<HttpTrigger, Error> {
+        let custom_log_pipes = Some(CustomLogPipes::new(stdout_pipe_path, stderr_pipe_path));
+        
         let config = spin_engine::ExecutionContextConfiguration {
             components: app.components,
             label: app.info.name,
             log_dir,
             config_resolver: app.config_resolver,
+            custom_log_pipes
         };
         let engine = engine;
         let mut builder = spin_engine::Builder::with_wasmtime_engine(config, engine.clone());
@@ -85,6 +92,7 @@ impl Wasi {
             execution_ctx,
             trigger_config,
             component_triggers,
+            FollowComponents::None
         )?)
     }
 }
@@ -131,7 +139,7 @@ impl Instance for Wasi {
                 info!("starting spin");
                 let rt = Runtime::new().unwrap();
                 rt.block_on(async {
-                    let app = match Wasi::build_spin_application(mod_path, working_dir).await {
+                    let app = match Wasi::build_spin_application(mod_path, working_dir, PathBuf::from(stdout), PathBuf::from(stderr)).await {
                         Ok(app) => app,
                         Err(err) => {
                             tx.send(Err(err)).unwrap();
