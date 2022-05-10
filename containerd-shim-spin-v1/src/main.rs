@@ -69,7 +69,6 @@ impl Wasi {
             log_dir,
             config_resolver: app.config_resolver,
         };
-
         let mut builder = spin_engine::Builder::with_engine(config, engine)?;
 
         HttpTrigger::configure_execution_context(&mut builder)?;
