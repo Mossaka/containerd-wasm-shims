@@ -13,11 +13,11 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
-use std::sync::{Arc, Condvar, Mutex, RwLock};
+use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 use tokio::runtime::Runtime;
-use wasmtime::Linker;
 use wasmtime::OptLevel;
+use spin_engine::io::FollowComponents;
 
 pub struct Wasi {
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
@@ -69,6 +69,7 @@ impl Wasi {
             log_dir,
             config_resolver: app.config_resolver,
         };
+
         let mut builder = spin_engine::Builder::with_engine(config, engine)?;
 
         HttpTrigger::configure_execution_context(&mut builder)?;
@@ -84,6 +85,7 @@ impl Wasi {
             execution_ctx,
             trigger_config,
             component_triggers,
+            FollowComponents::None,
         )?)
     }
 }

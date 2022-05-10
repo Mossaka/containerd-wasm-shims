@@ -2318,7 +2318,7 @@ dependencies = [
 [[package]]
 name = "outbound-redis"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#e609ee7d053c222ce7dfdb46cea73a8edb40ad90"
+source = "git+https://github.com/fermyon/spin?rev=1288afce34e158720a13864e42b9c302b6909046#1288afce34e158720a13864e42b9c302b6909046"
 dependencies = [
  "anyhow",
  "redis",
@@ -3288,7 +3288,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "spin-config"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#e609ee7d053c222ce7dfdb46cea73a8edb40ad90"
+source = "git+https://github.com/fermyon/spin?rev=1288afce34e158720a13864e42b9c302b6909046#1288afce34e158720a13864e42b9c302b6909046"
 dependencies = [
  "anyhow",
  "serde",
@@ -3299,7 +3299,7 @@ dependencies = [
 [[package]]
 name = "spin-engine"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#e609ee7d053c222ce7dfdb46cea73a8edb40ad90"
+source = "git+https://github.com/fermyon/spin?rev=1288afce34e158720a13864e42b9c302b6909046#1288afce34e158720a13864e42b9c302b6909046"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
@@ -3320,7 +3320,7 @@ dependencies = [
 [[package]]
 name = "spin-http-engine"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#e609ee7d053c222ce7dfdb46cea73a8edb40ad90"
+source = "git+https://github.com/fermyon/spin?rev=1288afce34e158720a13864e42b9c302b6909046#1288afce34e158720a13864e42b9c302b6909046"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3357,7 +3357,7 @@ dependencies = [
 [[package]]
 name = "spin-loader"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#e609ee7d053c222ce7dfdb46cea73a8edb40ad90"
+source = "git+https://github.com/fermyon/spin?rev=1288afce34e158720a13864e42b9c302b6909046#1288afce34e158720a13864e42b9c302b6909046"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3389,7 +3389,7 @@ dependencies = [
 [[package]]
 name = "spin-manifest"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#e609ee7d053c222ce7dfdb46cea73a8edb40ad90"
+source = "git+https://github.com/fermyon/spin?rev=1288afce34e158720a13864e42b9c302b6909046#1288afce34e158720a13864e42b9c302b6909046"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -3401,7 +3401,7 @@ dependencies = [
 [[package]]
 name = "spin-trigger"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#e609ee7d053c222ce7dfdb46cea73a8edb40ad90"
+source = "git+https://github.com/fermyon/spin?rev=1288afce34e158720a13864e42b9c302b6909046#1288afce34e158720a13864e42b9c302b6909046"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4310,7 +4310,7 @@ dependencies = [
 [[package]]
 name = "wasi-outbound-http"
 version = "0.1.0"
-source = "git+https://github.com/Mossaka/spin?branch=jiazho/builder_with_engine#e609ee7d053c222ce7dfdb46cea73a8edb40ad90"
+source = "git+https://github.com/fermyon/spin?rev=1288afce34e158720a13864e42b9c302b6909046#1288afce34e158720a13864e42b9c302b6909046"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
