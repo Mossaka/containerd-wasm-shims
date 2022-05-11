@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 FROM node:slim AS build
+=======
+FROM --platform=${BUILDPLATFORM} node:slim AS build
+>>>>>>> jiazho/with_generic_engine
 RUN npm i wasm-opt -g
 WORKDIR /opt/wasmtest
 COPY ./wasiwebapp.wasm .

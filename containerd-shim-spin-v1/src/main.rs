@@ -6,8 +6,11 @@ use containerd_shim_wasmtime_v1::sandbox::oci;
 use containerd_shim_wasmtime_v1::sandbox::Instance;
 use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
+<<<<<<< HEAD
 use spin_engine::io::CustomLogPipes;
 use spin_engine::io::FollowComponents;
+=======
+>>>>>>> jiazho/with_generic_engine
 use spin_http_engine::HttpTrigger;
 use spin_loader;
 use spin_trigger::Trigger;
@@ -15,6 +18,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
+<<<<<<< HEAD
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
 use tokio::runtime::Runtime;
@@ -23,6 +27,17 @@ use wasmtime::OptLevel;
 pub struct Wasi {
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
     engine: wasmtime::Engine,
+=======
+use std::sync::{Arc, Condvar, Mutex};
+use std::thread;
+use tokio::runtime::Runtime;
+use wasmtime::OptLevel;
+use spin_engine::io::FollowComponents;
+
+pub struct Wasi {
+    exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
+    engine: spin_engine::Engine,
+>>>>>>> jiazho/with_generic_engine
 
     id: String,
     stdin: String,
@@ -55,8 +70,6 @@ impl Wasi {
     async fn build_spin_application(
         mod_path: PathBuf,
         working_dir: PathBuf,
-        stdout_pipe_path: PathBuf,
-        stderr_pipe_path: PathBuf
     ) -> Result<spin_manifest::Application, Error> {
         Ok(spin_loader::from_file(mod_path, working_dir, &None).await?)
     }
@@ -64,19 +77,19 @@ impl Wasi {
     async fn build_spin_trigger(
         engine: wasmtime::Engine,
         app: spin_manifest::Application,
-        log_dir: Option<PathBuf>,
+        stdout_pipe_path: PathBuf,
+        stderr_pipe_path: PathBuf
     ) -> Result<HttpTrigger, Error> {
         let custom_log_pipes = Some(CustomLogPipes::new(stdout_pipe_path, stderr_pipe_path));
         
         let config = spin_engine::ExecutionContextConfiguration {
             components: app.components,
             label: app.info.name,
-            log_dir,
             config_resolver: app.config_resolver,
-            custom_log_pipes
+            custom_log_pipes,
+            ..Default::default(),
         };
-        let engine = engine;
-        let mut builder = spin_engine::Builder::with_wasmtime_engine(config, engine.clone());
+        let mut builder = spin_engine::Builder::with_engine(config, engine)?;
 
         HttpTrigger::configure_execution_context(&mut builder)?;
         let execution_ctx = builder.build().await?;
@@ -97,7 +110,9 @@ impl Wasi {
 }
 
 impl Instance for Wasi {
-    fn new(id: String, cfg: &InstanceConfig) -> Self {
+    type E = spin_engine::Engine;
+    fn new(id: String, cfg: Option<&InstanceConfig<Self::E>>) -> Self {
+        let cfg = cfg.unwrap();
         Wasi {
             exit_code: Arc::new((Mutex::new(None), Condvar::new())),
             engine: cfg.get_engine(),
@@ -138,7 +153,7 @@ impl Instance for Wasi {
                 info!("starting spin");
                 let rt = Runtime::new().unwrap();
                 rt.block_on(async {
-                    let app = match Wasi::build_spin_application(mod_path, working_dir, PathBuf::from(stdout), PathBuf::from(stderr)).await {
+                    let app = match Wasi::build_spin_application(mod_path, working_dir).await {
                         Ok(app) => app,
                         Err(err) => {
                             tx.send(Err(err)).unwrap();
@@ -147,7 +162,7 @@ impl Instance for Wasi {
                     };
 
                     let http_trigger =
-                        match Wasi::build_spin_trigger(engine.clone(), app, None).await {
+                        match Wasi::build_spin_trigger(engine.clone(), app, PathBuf::from(stdout), PathBuf::from(stderr)).await {
                             Ok(http_trigger) => http_trigger,
                             Err(err) => {
                                 tx.send(Err(err)).unwrap();
@@ -222,6 +237,7 @@ impl Instance for Wasi {
 }
 
 impl EngineGetter for Wasi {
+<<<<<<< HEAD
     fn new_engine() -> Result<wasmtime::Engine, Error> {
         let mut config = wasmtime::Config::default();
         config
@@ -232,9 +248,25 @@ impl EngineGetter for Wasi {
             .cranelift_opt_level(OptLevel::Speed);
 
         Ok(wasmtime::Engine::new(&config)?)
+=======
+    type E = spin_engine::Engine;
+    fn new_engine() -> Result<Self::E, Error> {
+        let mut config = wasmtime::Config::new();
+        config
+            .cache_config_load_default()?
+            .interruptable(true)
+            .cranelift_opt_level(OptLevel::Speed);
+        let engine = Self::E::new(config)?;
+        Ok(engine)
+>>>>>>> jiazho/with_generic_engine
     }
 }
 
 fn main() {
+<<<<<<< HEAD
     shim::run::<ShimCli<Wasi>>("io.containerd.spin.v1", None);
 }
+=======
+    shim::run::<ShimCli<Wasi, _>>("io.containerd.spin.v1", None);
+}
+>>>>>>> jiazho/with_generic_engine

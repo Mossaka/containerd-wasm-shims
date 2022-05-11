@@ -10,10 +10,18 @@ chrono = "0.4.19"
 containerd-shim = "0.3.0"
 containerd-shim-wasmtime-v1 = { git = "https://github.com/Mossaka/runwasi", branch = "jiazho/precompile" }
 log = "0.4"
+<<<<<<< HEAD
 spin-trigger = { git = "https://github.com/danbugs/spin", branch = "danbugs/custom-log-pipes" } 
 spin-engine = { git = "https://github.com/danbugs/spin", branch = "danbugs/custom-log-pipes" }
 spin-http-engine =  { git = "https://github.com/danbugs/spin", branch = "danbugs/custom-log-pipes" }
 spin-loader =  { git = "https://github.com/danbugs/spin", branch = "danbugs/custom-log-pipes" }
 spin-manifest = { git = "https://github.com/danbugs/spin", branch = "danbugs/custom-log-pipes" }
+=======
+spin-trigger = { git = "https://github.com/fermyon/spin", rev = "1288afce34e158720a13864e42b9c302b6909046" } 
+spin-engine = { git = "https://github.com/fermyon/spin", rev = "1288afce34e158720a13864e42b9c302b6909046" } 
+spin-http-engine =  { git = "https://github.com/fermyon/spin", rev = "1288afce34e158720a13864e42b9c302b6909046" } 
+spin-loader =  { git = "https://github.com/fermyon/spin", rev = "1288afce34e158720a13864e42b9c302b6909046" } 
+spin-manifest = { git = "https://github.com/fermyon/spin", rev = "1288afce34e158720a13864e42b9c302b6909046" } 
+>>>>>>> jiazho/with_generic_engine
 tokio = { version = "1.11", features = [ "rt" ] }
 wasmtime = "^0.34"

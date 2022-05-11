@@ -112,7 +112,9 @@ pub struct WasiContext {
 }
 
 impl Instance for Wasi {
-    fn new(id: String, cfg: &InstanceConfig) -> Self {
+    type E = wasmtime::Engine;
+    fn new(id: String, cfg: Option<&InstanceConfig<Self::E>>) -> Self {
+        let cfg = cfg.unwrap();
         Wasi {
             interupt: Arc::new(RwLock::new(None)),
             exit_code: Arc::new((Mutex::new(None), Condvar::new())),
@@ -273,8 +275,14 @@ impl Instance for Wasi {
 }
 
 impl EngineGetter for Wasi {
+<<<<<<< HEAD:containerd-shim-cehostshim-v1/src/main.rs
     fn new_engine() -> Result<wasmtime::Engine, Error> {
         let engine = wasmtime::Engine::new(
+=======
+    type E = wasmtime::Engine;
+    fn new_engine() -> Result<Self::E, Error> {
+        let engine = Self::E::new(
+>>>>>>> jiazho/with_generic_engine:src/containerd-shim-cehostshim-v1/main.rs
             wasmtime::Config::default()
                 .interruptable(true)
                 .cranelift_opt_level(OptLevel::Speed),
@@ -318,5 +326,5 @@ fn handle_ce(
 }
 
 fn main() {
-    shim::run::<ShimCli<Wasi>>("io.containerd.cehostshim.v1", None);
+    shim::run::<ShimCli<Wasi, _>>("io.containerd.cehostshim.v1", None);
 }
