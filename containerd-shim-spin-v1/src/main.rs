@@ -15,7 +15,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
-use std::sync::{Arc, Condvar, Mutex, RwLock};
+use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 use tokio::runtime::Runtime;
 use wasmtime::OptLevel;
@@ -60,7 +60,7 @@ impl Wasi {
     }
 
     async fn build_spin_trigger(
-        engine: wasmtime::Engine,
+        engine: spin_engine::Engine,
         app: spin_manifest::Application,
         stdout_pipe_path: PathBuf,
         stderr_pipe_path: PathBuf
@@ -72,7 +72,7 @@ impl Wasi {
             label: app.info.name,
             config_resolver: app.config_resolver,
             custom_log_pipes,
-            ..Default::default(),
+            ..Default::default()
         };
         let mut builder = spin_engine::Builder::with_engine(config, engine)?;
 
