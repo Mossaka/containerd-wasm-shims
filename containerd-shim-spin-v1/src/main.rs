@@ -67,6 +67,8 @@ impl Wasi {
     ) -> Result<HttpTrigger, Error> {
         let custom_log_pipes = Some(CustomLogPipes::new(stdout_pipe_path, stderr_pipe_path));
         
+        info!("{:#?}", custom_log_pipes);
+        
         let config = spin_engine::ExecutionContextConfiguration {
             components: app.components,
             label: app.info.name,

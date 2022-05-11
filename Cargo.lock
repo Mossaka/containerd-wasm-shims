@@ -2298,7 +2298,7 @@ dependencies = [
 [[package]]
 name = "outbound-redis"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#a9505fc756e097210213d99391b75fa75c043a00"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
 dependencies = [
  "anyhow",
  "redis",
@@ -3268,7 +3268,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "spin-config"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#a9505fc756e097210213d99391b75fa75c043a00"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
 dependencies = [
  "anyhow",
  "serde",
@@ -3279,7 +3279,7 @@ dependencies = [
 [[package]]
 name = "spin-engine"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#a9505fc756e097210213d99391b75fa75c043a00"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
@@ -3301,7 +3301,7 @@ dependencies = [
 [[package]]
 name = "spin-http-engine"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#a9505fc756e097210213d99391b75fa75c043a00"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3338,7 +3338,7 @@ dependencies = [
 [[package]]
 name = "spin-loader"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#a9505fc756e097210213d99391b75fa75c043a00"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3370,7 +3370,7 @@ dependencies = [
 [[package]]
 name = "spin-manifest"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#a9505fc756e097210213d99391b75fa75c043a00"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -3382,7 +3382,7 @@ dependencies = [
 [[package]]
 name = "spin-trigger"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#a9505fc756e097210213d99391b75fa75c043a00"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4291,7 +4291,7 @@ dependencies = [
 [[package]]
 name = "wasi-outbound-http"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#a9505fc756e097210213d99391b75fa75c043a00"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
