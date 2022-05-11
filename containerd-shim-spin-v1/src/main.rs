@@ -18,7 +18,6 @@ use std::sync::mpsc::Sender;
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
 use tokio::runtime::Runtime;
-use wasmtime::Linker;
 use wasmtime::OptLevel;
 
 pub struct Wasi {
@@ -112,10 +111,10 @@ impl Instance for Wasi {
     fn start(&self) -> Result<u32, Error> {
         let engine = self.engine.clone();
 
-        let exit_code = self.exit_code.clone();
+        let _exit_code = self.exit_code.clone();
         let (tx, rx) = channel::<Result<(), Error>>();
         let bundle = self.bundle.clone();
-        let stdin = self.stdin.clone();
+        let _stdin = self.stdin.clone();
         let stdout = self.stdout.clone();
         let stderr = self.stderr.clone();
 

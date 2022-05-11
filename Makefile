@@ -14,6 +14,9 @@ build:
 .PHONY: install
 install:
 	sudo $(INSTALL) target/release/containerd-shim-*-v1 $(PREFIX)/bin
+
+update-deps:
+	cargo update
 	
 test/out_rs/img.tar: images/image-rs/Dockerfile images/image-rs/src/lib.rs images/image-rs/Cargo.toml images/image-rs/Cargo.lock
 	mkdir -p $(@D)
