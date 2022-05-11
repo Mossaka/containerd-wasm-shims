@@ -87,9 +87,9 @@ checksum = "bbf56136a5198c7b01a49e3afcbef6cf84597273d298f54432926024107b0109"
 
 [[package]]
 name = "async-compression"
-version = "0.3.12"
+version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2bf394cfbbe876f0ac67b13b6ca819f9c9f2fb9ec67223cceb1555fbab1c31a"
+checksum = "8589c784ff02ac80dafc5e4116c3a2a3743ac5e0c902483518a88eec6559cf99"
 dependencies = [
  "flate2",
  "futures-core",
@@ -266,9 +266,9 @@ dependencies = [
 
 [[package]]
 name = "bitflags"
-version = "1.2.1"
+version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
+checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "block-buffer"
@@ -592,7 +592,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4bf4d73b6dedc8192061deeea9ba08e74393a9fd9bcef0ef31d969b191de3eb7"
 dependencies = [
  "protobuf",
- "ttrpc 0.5.2",
+ "ttrpc 0.5.3",
 ]
 
 [[package]]
@@ -602,7 +602,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "077ec778a0835d9d85502e8535362130187759b69eddabe2bdb3a68ffb575bd0"
 dependencies = [
  "protobuf",
- "ttrpc 0.6.0",
+ "ttrpc 0.6.1",
 ]
 
 [[package]]
@@ -640,7 +640,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
- "ttrpc 0.6.0",
+ "ttrpc 0.6.1",
  "wasi-common",
  "wasmtime",
  "wasmtime-wasi",
@@ -1992,19 +1992,6 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.20.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5e06129fb611568ef4e868c14b326274959aa70ff7776e9d55323531c374945"
-dependencies = [
- "bitflags",
- "cc",
- "cfg-if 1.0.0",
- "libc",
- "memoffset",
-]
-
-[[package]]
-name = "nix"
 version = "0.22.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4916f159ed8e5de0082076562152a76b7a1f64a01fd9d1e0fea002c37624faf"
@@ -2298,7 +2285,7 @@ dependencies = [
 [[package]]
 name = "outbound-redis"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#f12f589b61965237ed2f082e9618813aa5fcd919"
 dependencies = [
  "anyhow",
  "redis",
@@ -2989,9 +2976,9 @@ dependencies = [
 
 [[package]]
 name = "security-framework"
-version = "2.3.1"
+version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23a2ac85147a3a11d77ecf1bc7166ec0b92febfa4461c37944e180f319ece467"
+checksum = "2dc14f172faf8a0194a3aded622712b0de276821addc574fa54fc0a1167e10dc"
 dependencies = [
  "bitflags",
  "core-foundation",
@@ -3268,7 +3255,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "spin-config"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#f12f589b61965237ed2f082e9618813aa5fcd919"
 dependencies = [
  "anyhow",
  "serde",
@@ -3279,7 +3266,7 @@ dependencies = [
 [[package]]
 name = "spin-engine"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#f12f589b61965237ed2f082e9618813aa5fcd919"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
@@ -3301,7 +3288,7 @@ dependencies = [
 [[package]]
 name = "spin-http-engine"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#f12f589b61965237ed2f082e9618813aa5fcd919"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3338,7 +3325,7 @@ dependencies = [
 [[package]]
 name = "spin-loader"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#f12f589b61965237ed2f082e9618813aa5fcd919"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3370,7 +3357,7 @@ dependencies = [
 [[package]]
 name = "spin-manifest"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#f12f589b61965237ed2f082e9618813aa5fcd919"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -3382,7 +3369,7 @@ dependencies = [
 [[package]]
 name = "spin-trigger"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#f12f589b61965237ed2f082e9618813aa5fcd919"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3863,14 +3850,14 @@ checksum = "59547bce71d9c38b83d9c0e92b6066c4253371f15005def0c30d9657f50c7642"
 
 [[package]]
 name = "ttrpc"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66a973ce6d5eaa20c173635b29ffb660dafbc7ef109172c0015ba44e47a23711"
+checksum = "c46d73bc2a74f2440921b6539afbed68064b48b2c4f194c637430d1c83d052ad"
 dependencies = [
  "byteorder",
  "libc",
  "log",
- "nix 0.20.2",
+ "nix 0.23.1",
  "protobuf",
  "protobuf-codegen-pure",
  "thiserror",
@@ -3878,9 +3865,9 @@ dependencies = [
 
 [[package]]
 name = "ttrpc"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c7d6c992964a013c17814c08d31708d577b0aae44ebadb58755659dd824c2d1"
+checksum = "2ecfff459a859c6ba6668ff72b34c2f1d94d9d58f7088414c2674ad0f31cc7d8"
 dependencies = [
  "byteorder",
  "libc",
@@ -4272,7 +4259,7 @@ dependencies = [
 [[package]]
 name = "wasi-experimental-http-wasmtime"
 version = "0.9.0"
-source = "git+https://github.com/deislabs/wasi-experimental-http?rev=4ed321d6943f75546e38bba80e14a59797aa29de#4ed321d6943f75546e38bba80e14a59797aa29de"
+source = "git+https://github.com/deislabs/wasi-experimental-http?rev=9a143fa7d8be2a66d6d636c5c1b0c6e2bad68912#9a143fa7d8be2a66d6d636c5c1b0c6e2bad68912"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
@@ -4291,7 +4278,7 @@ dependencies = [
 [[package]]
 name = "wasi-outbound-http"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#9e94a62cbe1a9e985345b3fb3d6e5108f32c3a1f"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-log-pipes#f12f589b61965237ed2f082e9618813aa5fcd919"
 dependencies = [
  "anyhow",
  "bytes 1.1.0",
@@ -4304,7 +4291,7 @@ dependencies = [
  "tracing",
  "tracing-futures",
  "url 2.2.2",
- "wasi-experimental-http-wasmtime 0.9.0 (git+https://github.com/deislabs/wasi-experimental-http?rev=4ed321d6943f75546e38bba80e14a59797aa29de)",
+ "wasi-experimental-http-wasmtime 0.9.0 (git+https://github.com/deislabs/wasi-experimental-http?rev=9a143fa7d8be2a66d6d636c5c1b0c6e2bad68912)",
  "wit-bindgen-wasmtime",
 ]
 
@@ -4885,18 +4872,18 @@ dependencies = [
 
 [[package]]
 name = "zstd"
-version = "0.10.0+zstd.1.5.2"
+version = "0.10.2+zstd.1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b1365becbe415f3f0fcd024e2f7b45bacfb5bdd055f0dc113571394114e7bdd"
+checksum = "5f4a6bd64f22b5e3e94b4e238669ff9f10815c27a5180108b849d24174a83847"
 dependencies = [
  "zstd-safe",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "4.1.4+zstd.1.5.2"
+version = "4.1.6+zstd.1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f7cd17c9af1a4d6c24beb1cc54b17e2ef7b593dc92f19e9d9acad8b182bbaee"
+checksum = "94b61c51bb270702d6167b8ce67340d2754b088d0c091b06e593aa772c3ee9bb"
 dependencies = [
  "libc",
  "zstd-sys",

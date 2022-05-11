@@ -8,9 +8,11 @@ use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
 use spin_engine::io::CustomLogPipes;
 use spin_engine::io::FollowComponents;
+use spin_engine::io::PipeFile;
 use spin_http_engine::HttpTrigger;
 use spin_loader;
 use spin_trigger::Trigger;
+use std::fs::OpenOptions;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
@@ -37,15 +39,6 @@ pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
     spec.canonicalize_rootfs(&bundle)
         .map_err(|err| Error::Others(format!("could not canonicalize rootfs: {}", err)))?;
 
-    // let rootfs = oci::get_rootfs(&spec)?;
-    // let args = oci::get_args(&spec);
-    // let env = oci::env_to_wasi(&spec);
-
-    // let mut cmd = args[0].clone();
-    // let stripped = args[0].strip_prefix(std::path::MAIN_SEPARATOR);
-    // if stripped.is_some() {
-    //     cmd = stripped.unwrap().to_string();
-    // }
     let working_dir = oci::get_root(&spec);
     let mod_path = working_dir.join("spin.toml");
     Ok((working_dir.to_path_buf(), mod_path))
@@ -65,10 +58,27 @@ impl Wasi {
         stdout_pipe_path: PathBuf,
         stderr_pipe_path: PathBuf
     ) -> Result<HttpTrigger, Error> {
-        let custom_log_pipes = Some(CustomLogPipes::new(stdout_pipe_path, stderr_pipe_path));
+        let custom_log_pipes = Some(
+            CustomLogPipes::new(
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .open(stdout_pipe_path.clone())
+                        .unwrap(),
+                    stdout_pipe_path.clone()),
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .open(stderr_pipe_path.clone())
+                        .unwrap(),
+                        stderr_pipe_path.clone()
+                )
+            ));
         
         info!("{:#?}", custom_log_pipes);
-        
+
         let config = spin_engine::ExecutionContextConfiguration {
             components: app.components,
             label: app.info.name,
