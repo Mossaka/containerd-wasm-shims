@@ -111,7 +111,9 @@ pub fn prepare_module(
 }
 
 impl Instance for Wasi {
-    fn new(id: String, cfg: &InstanceConfig) -> Self {
+    type E = wasmtime::Engine;
+    fn new(id: String, cfg: Option<&InstanceConfig<Self::E>>) -> Self {
+        let cfg = cfg.unwrap();
         Wasi {
             interupt: Arc::new(RwLock::new(None)),
             exit_code: Arc::new((Mutex::new(None), Condvar::new())),
@@ -281,8 +283,9 @@ impl Instance for Wasi {
 }
 
 impl EngineGetter for Wasi {
-    fn new_engine() -> Result<wasmtime::Engine, Error> {
-        let engine = wasmtime::Engine::new(
+    type E = wasmtime::Engine;
+    fn new_engine() -> Result<Self::E, Error> {
+        let engine = Self::E::new(
             wasmtime::Config::default()
                 .interruptable(true)
                 .cranelift_opt_level(OptLevel::Speed),
@@ -292,5 +295,5 @@ impl EngineGetter for Wasi {
 }
 
 fn main() {
-    shim::run::<ShimCli<Wasi>>("io.containerd.aspdotnet.v1", None);
+    shim::run::<ShimCli<Wasi, _>>("io.containerd.aspdotnet.v1", None);
 }

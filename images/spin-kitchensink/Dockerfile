@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} rust:1.59 AS build
+FROM rust:1.59 AS build
 RUN curl -LO https://go.dev/dl/go1.17.9.linux-amd64.tar.gz && \
     rm -rf /usr/local/go && \ 
     tar -C /usr/local -xzf go1.17.9.linux-amd64.tar.gz && \
