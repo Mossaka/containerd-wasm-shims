@@ -283,14 +283,9 @@ impl Instance for Wasi {
 }
 
 impl EngineGetter for Wasi {
-<<<<<<< HEAD:containerd-shim-aspdotnet-v1/src/main.rs
-    fn new_engine() -> Result<wasmtime::Engine, Error> {
-        let engine = wasmtime::Engine::new(
-=======
     type E = wasmtime::Engine;
     fn new_engine() -> Result<Self::E, Error> {
         let engine = Self::E::new(
->>>>>>> jiazho/with_generic_engine:src/containerd-shim-aspdotnet-v1/main.rs
             wasmtime::Config::default()
                 .interruptable(true)
                 .cranelift_opt_level(OptLevel::Speed),

@@ -32,21 +32,12 @@ test/out_dotnet/img.tar: images/aspnet/Dockerfile
 	mkdir -p $(@D)
 	docker build -t $(TEST_IMG_NAME_DOTNET) ./images/aspnet
 	docker save -o $@ $(TEST_IMG_NAME_DOTNET)	
-<<<<<<< HEAD
 
 test/out_spin-k/img.tar: images/spin-kitchensink/Dockerfile
 	mkdir -p $(@D)
 	docker build -t $(TEST_IMG_NAME_SPINK) ./images/spin-kitchensink
 	docker save -o $@ $(TEST_IMG_NAME_SPINK)
 
-=======
-
-test/out_spin-k/img.tar: images/spin-kitchensink/Dockerfile
-	mkdir -p $(@D)
-	docker build -t $(TEST_IMG_NAME_SPINK) ./images/spin-kitchensink
-	docker save -o $@ $(TEST_IMG_NAME_SPINK)
-
->>>>>>> jiazho/with_generic_engine
 load: test/out_rs/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar test/out_spin-k/img.tar
 	sudo ctr -n $(CONTAINERD_NAMESPACE) image import test/out_rs/img.tar
 	sudo ctr -n $(CONTAINERD_NAMESPACE) image import test/out_cpp/img.tar
@@ -54,7 +45,6 @@ load: test/out_rs/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar test/out_
 	sudo ctr -n $(CONTAINERD_NAMESPACE) image import test/out_spin-k/img.tar
 
 run:
-<<<<<<< HEAD
 	sudo ctr run --net-host --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME) testwasm
 
 run_cpp:
@@ -65,18 +55,6 @@ run_dotnet:
 
 run_spink:
 	sudo ctr run --net-host --rm --runtime=io.containerd.spin.v1 docker.io/library/$(TEST_IMG_NAME_SPINK) testspink
-=======
-	sudo ctr run -d --net-host --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME) testwasm
-
-run_cpp:
-	sudo ctr run -d --net-host --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME_CPP) testwasm
-
-run_dotnet:
-	sudo ctr run -d --net-host --rm --runtime=io.containerd.aspdotnet.v1 docker.io/library/$(TEST_IMG_NAME_DOTNET) testdotnet
-
-run_spink:
-	sudo ctr run -d --net-host --rm --runtime=io.containerd.spin.v1 docker.io/library/$(TEST_IMG_NAME_SPINK) testspink
->>>>>>> jiazho/with_generic_engine
 
 clean:
 	sudo rm -rf ./test

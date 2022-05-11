@@ -6,11 +6,8 @@ use containerd_shim_wasmtime_v1::sandbox::oci;
 use containerd_shim_wasmtime_v1::sandbox::Instance;
 use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
-<<<<<<< HEAD
 use spin_engine::io::CustomLogPipes;
 use spin_engine::io::FollowComponents;
-=======
->>>>>>> jiazho/with_generic_engine
 use spin_http_engine::HttpTrigger;
 use spin_loader;
 use spin_trigger::Trigger;
@@ -18,7 +15,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
-<<<<<<< HEAD
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
 use tokio::runtime::Runtime;
@@ -26,18 +22,7 @@ use wasmtime::OptLevel;
 
 pub struct Wasi {
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
-    engine: wasmtime::Engine,
-=======
-use std::sync::{Arc, Condvar, Mutex};
-use std::thread;
-use tokio::runtime::Runtime;
-use wasmtime::OptLevel;
-use spin_engine::io::FollowComponents;
-
-pub struct Wasi {
-    exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
     engine: spin_engine::Engine,
->>>>>>> jiazho/with_generic_engine
 
     id: String,
     stdin: String,
@@ -237,18 +222,6 @@ impl Instance for Wasi {
 }
 
 impl EngineGetter for Wasi {
-<<<<<<< HEAD
-    fn new_engine() -> Result<wasmtime::Engine, Error> {
-        let mut config = wasmtime::Config::default();
-        config
-            .cache_config_load_default()?
-            .wasm_multi_memory(true)
-            .wasm_module_linking(true)
-            .interruptable(true)
-            .cranelift_opt_level(OptLevel::Speed);
-
-        Ok(wasmtime::Engine::new(&config)?)
-=======
     type E = spin_engine::Engine;
     fn new_engine() -> Result<Self::E, Error> {
         let mut config = wasmtime::Config::new();
@@ -258,15 +231,9 @@ impl EngineGetter for Wasi {
             .cranelift_opt_level(OptLevel::Speed);
         let engine = Self::E::new(config)?;
         Ok(engine)
->>>>>>> jiazho/with_generic_engine
     }
 }
 
 fn main() {
-<<<<<<< HEAD
-    shim::run::<ShimCli<Wasi>>("io.containerd.spin.v1", None);
-}
-=======
     shim::run::<ShimCli<Wasi, _>>("io.containerd.spin.v1", None);
 }
->>>>>>> jiazho/with_generic_engine
