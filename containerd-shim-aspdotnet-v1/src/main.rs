@@ -83,11 +83,11 @@ pub fn prepare_module(
 
     let ip_address = "0.0.0.0:80";
     let stdlistener = std::net::TcpListener::bind(ip_address)
-        .with_context(|| format!("failed to bind to address '0.0.0.0:80'"))?;
+        .with_context(|| "failed to bind to address '0.0.0.0:80'".to_string())?;
 
     let _ = stdlistener.set_nonblocking(true)?;
     let tcplisten = TcpListener::from_std(stdlistener);
-    wasi_builder = wasi_builder.preopened_socket(3 as _, tcplisten)?;
+    wasi_builder = wasi_builder.preopened_socket(3_u32, tcplisten)?;
 
     wasi_builder = wasi_builder.env("ASPNETCORE_URLS", "http://0.0.0.0:8080")?;
 
@@ -210,7 +210,7 @@ impl Instance for Wasi {
                 info!("starting wasi instance");
 
                 let (lock, cvar) = &*exit_code;
-                let _ret = match f.call(&mut store, &mut vec![], &mut vec![]) {
+                let _ret = match f.call(&mut store, &mut [], &mut []) {
                     Ok(_) => {
                         info!("exit code: {}", 0);
                         let mut ec = lock.lock().unwrap();

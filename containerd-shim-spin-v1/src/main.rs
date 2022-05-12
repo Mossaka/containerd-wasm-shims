@@ -10,7 +10,7 @@ use spin_engine::io::CustomLogPipes;
 use spin_engine::io::FollowComponents;
 use spin_engine::io::PipeFile;
 use spin_http_engine::HttpTrigger;
-use spin_loader;
+
 use spin_trigger::Trigger;
 use std::fs::OpenOptions;
 use std::path::Path;
@@ -107,7 +107,7 @@ impl Wasi {
         let component_triggers: spin_manifest::ComponentMap<spin_manifest::HttpConfig> = app
             .component_triggers
             .into_iter()
-            .map(|(id, trigger)| Ok((id.clone(), trigger.try_into().unwrap())))
+            .map(|(id, trigger)| Ok((id, trigger.try_into().unwrap())))
             .collect::<Result<_, Error>>()?;
 
         Ok(HttpTrigger::new(
@@ -139,7 +139,7 @@ impl Instance for Wasi {
     fn start(&self) -> Result<u32, Error> {
         let engine = self.engine.clone();
 
-        let exi = self.exit_code.clone();
+        let exit_code = self.exit_code.clone();
         let (tx, rx) = channel::<Result<(), Error>>();
         let bundle = self.bundle.clone();
         let stdin = self.stdin.clone();
@@ -202,14 +202,14 @@ impl Instance for Wasi {
                         _ = f => {
                             log::info!(" >>> Server shut down: exiting");
 
-                            let (lock, cvar) = &*exi;
+                            let (lock, cvar) = &*exit_code;
                             let mut ec = lock.lock().unwrap();
                             *ec = Some((137, Utc::now()));
                             cvar.notify_all();
                         },
                         _ = rx_future => {
                             log::info!(" >>> User requested shutdown: exiting");
-                            let (lock, cvar) = &*exi;
+                            let (lock, cvar) = &*exit_code;
                             let mut ec = lock.lock().unwrap();
                             *ec = Some((0, Utc::now()));
                             cvar.notify_all();
