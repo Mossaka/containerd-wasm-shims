@@ -16,7 +16,7 @@ use std::fs::OpenOptions;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
-use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 use tokio::runtime::Runtime;
@@ -63,32 +63,33 @@ impl Wasi {
         stderr_pipe_path: PathBuf,
         stdin_pipe_path: PathBuf,
     ) -> Result<HttpTrigger, Error> {
-        let custom_log_pipes = Some(
-            CustomLogPipes::new(
-                PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stdin_pipe_path.clone())
-                        .unwrap(),
-                    stdin_pipe_path.clone()),
-                PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stdout_pipe_path.clone())
-                        .unwrap(),
-                    stdout_pipe_path.clone()),
-                PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stderr_pipe_path.clone())
-                        .unwrap(),
-                        stderr_pipe_path.clone()
-                )
-            ));
-        
+        let custom_log_pipes = Some(CustomLogPipes::new(
+            PipeFile::new(
+                OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .open(stdin_pipe_path.clone())
+                    .unwrap(),
+                stdin_pipe_path.clone(),
+            ),
+            PipeFile::new(
+                OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .open(stdout_pipe_path.clone())
+                    .unwrap(),
+                stdout_pipe_path.clone(),
+            ),
+            PipeFile::new(
+                OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .open(stderr_pipe_path.clone())
+                    .unwrap(),
+                stderr_pipe_path.clone(),
+            ),
+        ));
+
         info!(" >>> {:#?}", custom_log_pipes);
 
         let config = spin_engine::ExecutionContextConfiguration {
@@ -113,7 +114,7 @@ impl Wasi {
             execution_ctx,
             trigger_config,
             component_triggers,
-            FollowComponents::None
+            FollowComponents::None,
         )?)
     }
 }
@@ -146,7 +147,6 @@ impl Instance for Wasi {
         let stderr = self.stderr.clone();
         let shutdown_rx = self.shutdown_rx.clone();
 
-
         thread::Builder::new()
             .name(self.id.clone())
             .spawn(move || {
@@ -171,25 +171,31 @@ impl Instance for Wasi {
                         }
                     };
 
-                    let http_trigger =
-                        match Wasi::build_spin_trigger(engine.clone(), app, PathBuf::from(stdout), PathBuf::from(stderr), PathBuf::from(stdin)).await {
-                            Ok(http_trigger) => http_trigger,
-                            Err(err) => {
-                                tx.send(Err(err)).unwrap();
-                                return;
-                            }
-                        };
+                    let http_trigger = match Wasi::build_spin_trigger(
+                        engine.clone(),
+                        app,
+                        PathBuf::from(stdout),
+                        PathBuf::from(stderr),
+                        PathBuf::from(stdin),
+                    )
+                    .await
+                    {
+                        Ok(http_trigger) => http_trigger,
+                        Err(err) => {
+                            tx.send(Err(err)).unwrap();
+                            return;
+                        }
+                    };
 
                     let rx_future = tokio::task::spawn_blocking(move || {
                         shutdown_rx.lock().unwrap().recv().ok();
                     });
 
-                    let f = http_trigger
-                        .run(spin_http_engine::HttpTriggerExecutionConfig::new(
-                            SPIN_ADDR.to_string(),
-                            None,
-                        ));
-                    
+                    let f = http_trigger.run(spin_http_engine::HttpTriggerExecutionConfig::new(
+                        SPIN_ADDR.to_string(),
+                        None,
+                    ));
+
                     info!(" >>> notifying main thread we are about to start");
                     tx.send(Ok(())).unwrap();
                     tokio::select! {
