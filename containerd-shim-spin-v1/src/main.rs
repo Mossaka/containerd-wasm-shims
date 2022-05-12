@@ -56,10 +56,18 @@ impl Wasi {
         engine: spin_engine::Engine,
         app: spin_manifest::Application,
         stdout_pipe_path: PathBuf,
-        stderr_pipe_path: PathBuf
+        stderr_pipe_path: PathBuf,
+        stdin_pipe_path: PathBuf,
     ) -> Result<HttpTrigger, Error> {
         let custom_log_pipes = Some(
             CustomLogPipes::new(
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .open(stdin_pipe_path.clone())
+                        .unwrap(),
+                    stdin_pipe_path.clone()),
                 PipeFile::new(
                     OpenOptions::new()
                         .read(true)
@@ -126,7 +134,7 @@ impl Instance for Wasi {
         let _exit_code = self.exit_code.clone();
         let (tx, rx) = channel::<Result<(), Error>>();
         let bundle = self.bundle.clone();
-        let _stdin = self.stdin.clone();
+        let stdin = self.stdin.clone();
         let stdout = self.stdout.clone();
         let stderr = self.stderr.clone();
 
@@ -159,7 +167,7 @@ impl Instance for Wasi {
                     };
 
                     let http_trigger =
-                        match Wasi::build_spin_trigger(engine.clone(), app, PathBuf::from(stdout), PathBuf::from(stderr)).await {
+                        match Wasi::build_spin_trigger(engine.clone(), app, PathBuf::from(stdout), PathBuf::from(stderr), PathBuf::from(stdin)).await {
                             Ok(http_trigger) => http_trigger,
                             Err(err) => {
                                 tx.send(Err(err)).unwrap();
