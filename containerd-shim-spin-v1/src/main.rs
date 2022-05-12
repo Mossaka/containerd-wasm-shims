@@ -6,9 +6,13 @@ use containerd_shim_wasmtime_v1::sandbox::oci;
 use containerd_shim_wasmtime_v1::sandbox::Instance;
 use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
+use spin_engine::io::CustomLogPipes;
+use spin_engine::io::FollowComponents;
+use spin_engine::io::PipeFile;
 use spin_http_engine::HttpTrigger;
 use spin_loader;
 use spin_trigger::Trigger;
+use std::fs::OpenOptions;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
@@ -17,7 +21,6 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 use tokio::runtime::Runtime;
 use wasmtime::OptLevel;
-use spin_engine::io::FollowComponents;
 
 pub struct Wasi {
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
@@ -36,15 +39,6 @@ pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
     spec.canonicalize_rootfs(&bundle)
         .map_err(|err| Error::Others(format!("could not canonicalize rootfs: {}", err)))?;
 
-    // let rootfs = oci::get_rootfs(&spec)?;
-    // let args = oci::get_args(&spec);
-    // let env = oci::env_to_wasi(&spec);
-
-    // let mut cmd = args[0].clone();
-    // let stripped = args[0].strip_prefix(std::path::MAIN_SEPARATOR);
-    // if stripped.is_some() {
-    //     cmd = stripped.unwrap().to_string();
-    // }
     let working_dir = oci::get_root(&spec);
     let mod_path = working_dir.join("spin.toml");
     Ok((working_dir.to_path_buf(), mod_path))
@@ -55,19 +49,50 @@ impl Wasi {
         mod_path: PathBuf,
         working_dir: PathBuf,
     ) -> Result<spin_manifest::Application, Error> {
-        Ok(spin_loader::from_file(mod_path, working_dir).await?)
+        Ok(spin_loader::from_file(mod_path, working_dir, &None).await?)
     }
 
     async fn build_spin_trigger(
         engine: spin_engine::Engine,
         app: spin_manifest::Application,
-        log_dir: Option<PathBuf>,
+        stdout_pipe_path: PathBuf,
+        stderr_pipe_path: PathBuf,
+        stdin_pipe_path: PathBuf,
     ) -> Result<HttpTrigger, Error> {
+        let custom_log_pipes = Some(
+            CustomLogPipes::new(
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .open(stdin_pipe_path.clone())
+                        .unwrap(),
+                    stdin_pipe_path.clone()),
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .open(stdout_pipe_path.clone())
+                        .unwrap(),
+                    stdout_pipe_path.clone()),
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .open(stderr_pipe_path.clone())
+                        .unwrap(),
+                        stderr_pipe_path.clone()
+                )
+            ));
+        
+        info!("{:#?}", custom_log_pipes);
+
         let config = spin_engine::ExecutionContextConfiguration {
             components: app.components,
             label: app.info.name,
-            log_dir,
             config_resolver: app.config_resolver,
+            custom_log_pipes,
+            ..Default::default()
         };
         let mut builder = spin_engine::Builder::with_engine(config, engine)?;
 
@@ -84,7 +109,7 @@ impl Wasi {
             execution_ctx,
             trigger_config,
             component_triggers,
-            FollowComponents::None,
+            FollowComponents::None
         )?)
     }
 }
@@ -106,7 +131,7 @@ impl Instance for Wasi {
     fn start(&self) -> Result<u32, Error> {
         let engine = self.engine.clone();
 
-        let exit_code = self.exit_code.clone();
+        let _exit_code = self.exit_code.clone();
         let (tx, rx) = channel::<Result<(), Error>>();
         let bundle = self.bundle.clone();
         let stdin = self.stdin.clone();
@@ -141,13 +166,14 @@ impl Instance for Wasi {
                         }
                     };
 
-                    let http_trigger = match Wasi::build_spin_trigger(engine, app, None).await {
-                        Ok(http_trigger) => http_trigger,
-                        Err(err) => {
-                            tx.send(Err(err)).unwrap();
-                            return;
-                        }
-                    };
+                    let http_trigger =
+                        match Wasi::build_spin_trigger(engine.clone(), app, PathBuf::from(stdout), PathBuf::from(stderr), PathBuf::from(stdin)).await {
+                            Ok(http_trigger) => http_trigger,
+                            Err(err) => {
+                                tx.send(Err(err)).unwrap();
+                                return;
+                            }
+                        };
 
                     match http_trigger
                         .run(spin_http_engine::HttpTriggerExecutionConfig::new(

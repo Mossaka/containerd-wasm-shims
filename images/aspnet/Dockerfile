@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} node:slim AS build
+FROM node:slim AS build
 RUN npm i wasm-opt -g
 WORKDIR /opt/wasmtest
 COPY ./wasiwebapp.wasm .

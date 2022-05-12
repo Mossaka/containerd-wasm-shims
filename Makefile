@@ -14,6 +14,9 @@ build:
 .PHONY: install
 install:
 	sudo $(INSTALL) target/release/containerd-shim-*-v1 $(PREFIX)/bin
+
+update-deps:
+	cargo update
 	
 test/out_rs/img.tar: images/image-rs/Dockerfile images/image-rs/src/lib.rs images/image-rs/Cargo.toml images/image-rs/Cargo.lock
 	mkdir -p $(@D)
@@ -42,16 +45,16 @@ load: test/out_rs/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar test/out_
 	sudo ctr -n $(CONTAINERD_NAMESPACE) image import test/out_spin-k/img.tar
 
 run:
-	sudo ctr run -d --net-host --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME) testwasm
+	sudo ctr run --net-host --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME) testwasm
 
 run_cpp:
-	sudo ctr run -d --net-host --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME_CPP) testwasm
+	sudo ctr run --net-host --rm --runtime=io.containerd.cehostshim.v1 docker.io/library/$(TEST_IMG_NAME_CPP) testwasm
 
 run_dotnet:
-	sudo ctr run -d --net-host --rm --runtime=io.containerd.aspdotnet.v1 docker.io/library/$(TEST_IMG_NAME_DOTNET) testdotnet
+	sudo ctr run --net-host --rm --runtime=io.containerd.aspdotnet.v1 docker.io/library/$(TEST_IMG_NAME_DOTNET) testdotnet
 
 run_spink:
-	sudo ctr run -d --net-host --rm --runtime=io.containerd.spin.v1 docker.io/library/$(TEST_IMG_NAME_SPINK) testspink
+	sudo ctr run --net-host --rm --runtime=io.containerd.spin.v1 docker.io/library/$(TEST_IMG_NAME_SPINK) testspink
 
 clean:
 	sudo rm -rf ./test

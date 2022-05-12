@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} rust:1.59 AS build
+FROM rust:1.59 AS build
 WORKDIR /opt/wasmtest
 COPY . .
 
