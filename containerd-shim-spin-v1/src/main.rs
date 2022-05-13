@@ -33,8 +33,7 @@ pub struct Wasi {
     stdout: String,
     stderr: String,
     bundle: String,
-    shutdown_tx: Arc<Mutex<Sender<()>>>,
-    shutdown_rx: Arc<Mutex<Receiver<()>>>,
+    shutdown_signal: Arc<(Mutex<bool>, Condvar)>,
 }
 
 pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
@@ -132,20 +131,19 @@ impl Instance for Wasi {
             stdout: cfg.get_stdout().unwrap_or_default(),
             stderr: cfg.get_stderr().unwrap_or_default(),
             bundle: cfg.get_bundle().unwrap_or_default(),
-            shutdown_tx: Arc::new(Mutex::new(tx)),
-            shutdown_rx: Arc::new(Mutex::new(rx)),
+            shutdown_signal: Arc::new((Mutex::new(false), Condvar::new())),
         }
     }
     fn start(&self) -> Result<u32, Error> {
         let engine = self.engine.clone();
 
         let exit_code = self.exit_code.clone();
+        let shutdown_signal = self.shutdown_signal.clone();
         let (tx, rx) = channel::<Result<(), Error>>();
         let bundle = self.bundle.clone();
         let stdin = self.stdin.clone();
         let stdout = self.stdout.clone();
         let stderr = self.stderr.clone();
-        let shutdown_rx = self.shutdown_rx.clone();
 
         thread::Builder::new()
             .name(self.id.clone())
@@ -188,7 +186,11 @@ impl Instance for Wasi {
                     };
 
                     let rx_future = tokio::task::spawn_blocking(move || {
-                        shutdown_rx.lock().unwrap().recv().ok();
+                        let (lock, cvar) = &*shutdown_signal;
+                        let mut shutdown = lock.lock().unwrap();
+                        while !*shutdown {
+                            shutdown = cvar.wait(shutdown).unwrap();
+                        }
                     });
 
                     let f = http_trigger.run(spin_http_engine::HttpTriggerExecutionConfig::new(
@@ -243,7 +245,10 @@ impl Instance for Wasi {
             ));
         }
 
-        self.shutdown_tx.lock().unwrap().send(()).ok();
+        let (lock, cvar) = &*self.shutdown_signal;
+        let mut shutdown = lock.lock().unwrap();
+        *shutdown = true;
+        cvar.notify_all();
 
         Ok(())
     }
