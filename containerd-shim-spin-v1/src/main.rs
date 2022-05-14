@@ -122,7 +122,6 @@ impl Instance for Wasi {
     type E = spin_engine::Engine;
     fn new(id: String, cfg: Option<&InstanceConfig<Self::E>>) -> Self {
         let cfg = cfg.unwrap();
-        let (tx, rx) = std::sync::mpsc::channel::<()>();
         Wasi {
             exit_code: Arc::new((Mutex::new(None), Condvar::new())),
             engine: cfg.get_engine(),
