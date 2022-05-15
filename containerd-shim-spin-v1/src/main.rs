@@ -62,34 +62,36 @@ impl Wasi {
         stderr_pipe_path: PathBuf,
         stdin_pipe_path: PathBuf,
     ) -> Result<HttpTrigger, Error> {
-        let custom_log_pipes = Some(CustomLogPipes::new(
-            PipeFile::new(
-                OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .open(stdin_pipe_path.clone())
-                    .unwrap(),
-                stdin_pipe_path.clone(),
-            ),
-            PipeFile::new(
-                OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .open(stdout_pipe_path.clone())
-                    .unwrap(),
-                stdout_pipe_path.clone(),
-            ),
-            PipeFile::new(
-                OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .open(stderr_pipe_path.clone())
-                    .unwrap(),
-                stderr_pipe_path.clone(),
-            ),
-        ));
-
-        info!(" >>> {:#?}", custom_log_pipes);
+        let custom_log_pipes = Some(
+            CustomLogPipes::new(
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .create(true)
+                        .open(stdin_pipe_path.clone())
+                        .unwrap(),
+                    stdin_pipe_path.clone()),
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .create(true)
+                        .open(stdout_pipe_path.clone())
+                        .unwrap(),
+                    stdout_pipe_path.clone()),
+                PipeFile::new(
+                    OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .create(true)
+                        .open(stderr_pipe_path.clone())
+                        .unwrap(),
+                        stderr_pipe_path.clone()
+                )
+            ));
+        
+        info!("{:#?}", custom_log_pipes);
 
         let config = spin_engine::ExecutionContextConfiguration {
             components: app.components,
