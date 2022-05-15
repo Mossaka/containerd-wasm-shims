@@ -12,7 +12,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions: 
+      contents: write
+      packages: write 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -22,5 +24,24 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Build
-        run: cargo build --verbose
+      - name: Install latest Rust stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+      - name: build release
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - name: package release assets
+        run: |
+          mkdir _dist
+          cp target/release/containerd-shim-*-v1 _dist/
+          cd _dist
+          tar czf containerd-shim-wasmtest-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz containerd-shim-*-v1
+      - name: upload binary as GitHub artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: containerd-shim-wasmtest-v1
+          path: _dist/containerd-shim-wasmtest-v1-${{ env.RELEASE_VERSION }}-${{ env.RUNNER_OS }}-amd64.tar.gz
