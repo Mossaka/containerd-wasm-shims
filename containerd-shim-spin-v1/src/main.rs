@@ -8,6 +8,7 @@ use containerd_shim_wasmtime_v1::sandbox::{instance::InstanceConfig, ShimCli};
 use log::info;
 use spin_engine::io::CustomLogPipes;
 use spin_engine::io::FollowComponents;
+use spin_engine::io::ModuleIoRedirectsTypes;
 use spin_engine::io::PipeFile;
 use spin_http_engine::HttpTrigger;
 use spin_loader;
@@ -59,44 +60,63 @@ impl Wasi {
         stderr_pipe_path: PathBuf,
         stdin_pipe_path: PathBuf,
     ) -> Result<HttpTrigger, Error> {
-        let custom_log_pipes = Some(
-            CustomLogPipes::new(
+
+        let custom_log_pipes = if stdin_pipe_path.as_os_str().is_empty()
+            || stdout_pipe_path.as_os_str().is_empty()
+            || stderr_pipe_path.as_os_str().is_empty()
+        {
+            None
+        } else {
+            Some(CustomLogPipes::new(
                 PipeFile::new(
                     OpenOptions::new()
                         .read(true)
                         .write(true)
-                        .create(true)
                         .open(stdin_pipe_path.clone())
                         .unwrap(),
-                    stdin_pipe_path.clone()),
+                    stdin_pipe_path.clone(),
+                ),
                 PipeFile::new(
                     OpenOptions::new()
                         .read(true)
                         .write(true)
-                        .create(true)
                         .open(stdout_pipe_path.clone())
                         .unwrap(),
-                    stdout_pipe_path.clone()),
+                    stdout_pipe_path.clone(),
+                ),
                 PipeFile::new(
                     OpenOptions::new()
                         .read(true)
                         .write(true)
-                        .create(true)
                         .open(stderr_pipe_path.clone())
                         .unwrap(),
-                        stderr_pipe_path.clone()
-                )
-            ));
-        
-        info!("{:#?}", custom_log_pipes);
-
-        let config = spin_engine::ExecutionContextConfiguration {
-            components: app.components,
-            label: app.info.name,
-            config_resolver: app.config_resolver,
-            custom_log_pipes,
-            ..Default::default()
+                    stderr_pipe_path.clone(),
+                ),
+            ))
         };
+
+        info!(" >>> {:#?}", custom_log_pipes);
+
+        let config = match custom_log_pipes {
+            Some(clp) => {
+                spin_engine::ExecutionContextConfiguration {
+                    components: app.components,
+                    label: app.info.name,
+                    config_resolver: app.config_resolver,
+                    module_io_redirects: ModuleIoRedirectsTypes::FromFiles(clp),
+                    ..Default::default()
+                }
+            }, 
+            None => {
+                spin_engine::ExecutionContextConfiguration {
+                    components: app.components,
+                    label: app.info.name,
+                    config_resolver: app.config_resolver,
+                    ..Default::default()
+                }
+            }
+        };
+
         let mut builder = spin_engine::Builder::with_engine(config, engine)?;
 
         HttpTrigger::configure_execution_context(&mut builder)?;
@@ -112,7 +132,7 @@ impl Wasi {
             execution_ctx,
             trigger_config,
             component_triggers,
-            FollowComponents::None
+            FollowComponents::All,
         )?)
     }
 }
@@ -169,14 +189,21 @@ impl Instance for Wasi {
                         }
                     };
 
-                    let http_trigger =
-                        match Wasi::build_spin_trigger(engine.clone(), app, PathBuf::from(stdout), PathBuf::from(stderr), PathBuf::from(stdin)).await {
-                            Ok(http_trigger) => http_trigger,
-                            Err(err) => {
-                                tx.send(Err(err)).unwrap();
-                                return;
-                            }
-                        };
+                    let http_trigger = match Wasi::build_spin_trigger(
+                        engine.clone(),
+                        app,
+                        PathBuf::from(stdout),
+                        PathBuf::from(stderr),
+                        PathBuf::from(stdin),
+                    )
+                    .await
+                    {
+                        Ok(http_trigger) => http_trigger,
+                        Err(err) => {
+                            tx.send(Err(err)).unwrap();
+                            return;
+                        }
+                    };
 
                     match http_trigger
                         .run(spin_http_engine::HttpTriggerExecutionConfig::new(
