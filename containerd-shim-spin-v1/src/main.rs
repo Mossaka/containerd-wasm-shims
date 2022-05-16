@@ -75,7 +75,6 @@ impl Wasi {
                     OpenOptions::new()
                         .read(true)
                         .write(true)
-                        .create(true)
                         .open(stdin_pipe_path.clone())
                         .unwrap(),
                     stdin_pipe_path.clone(),
@@ -84,7 +83,6 @@ impl Wasi {
                     OpenOptions::new()
                         .read(true)
                         .write(true)
-                        .create(true)
                         .open(stdout_pipe_path.clone())
                         .unwrap(),
                     stdout_pipe_path.clone(),
@@ -93,7 +91,6 @@ impl Wasi {
                     OpenOptions::new()
                         .read(true)
                         .write(true)
-                        .create(true)
                         .open(stderr_pipe_path.clone())
                         .unwrap(),
                     stderr_pipe_path.clone(),
