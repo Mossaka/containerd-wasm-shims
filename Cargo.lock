@@ -606,6 +606,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "containerd-shim-sat-v1"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "containerd-shim",
+ "containerd-shim-wasmtime-v1",
+ "log",
+ "wasmtime",
+ "wasmtime-wasi",
+]
+
+[[package]]
 name = "containerd-shim-spin-v1"
 version = "0.1.0"
 dependencies = [

@@ -4,6 +4,7 @@ TEST_IMG_NAME ?= wasmtest:latest
 TEST_IMG_NAME_CPP ?= wasmtest_cpp:latest
 TEST_IMG_NAME_DOTNET ?= wasmtest_dotnet:latest
 TEST_IMG_NAME_SPINK ?= wasmtest_spink:latest
+TEST_IMG_NAME_SAT ?= wasmtest_sat:latest
 
 CONTAINERD_NAMESPACE ?= default
 
@@ -37,6 +38,11 @@ test/out_spin-k/img.tar: images/spin-kitchensink/Dockerfile
 	mkdir -p $(@D)
 	docker build -t $(TEST_IMG_NAME_SPINK) ./images/spin-kitchensink
 	docker save -o $@ $(TEST_IMG_NAME_SPINK)
+
+test/out_sat/img.tar: images/sat-hello/Dockerfile
+	mkdir -p $(@D)
+	docker build -t $(TEST_IMG_NAME_SAT) ./images/sat-hello
+	docker save -o $@ $(TEST_IMG_NAME_SAT)
 
 load: test/out_rs/img.tar test/out_cpp/img.tar test/out_dotnet/img.tar test/out_spin-k/img.tar
 	sudo ctr -n $(CONTAINERD_NAMESPACE) image import test/out_rs/img.tar
