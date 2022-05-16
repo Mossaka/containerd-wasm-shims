@@ -11,7 +11,7 @@ use spin_engine::io::FollowComponents;
 use spin_engine::io::ModuleIoRedirectsTypes;
 use spin_engine::io::PipeFile;
 use spin_http_engine::HttpTrigger;
-use spin_loader;
+
 use spin_trigger::Trigger;
 use std::fs::OpenOptions;
 use std::path::Path;
@@ -23,6 +23,8 @@ use std::thread;
 use tokio::runtime::Runtime;
 use wasmtime::OptLevel;
 
+static SPIN_ADDR: &str = "0.0.0.0:80";
+
 pub struct Wasi {
     exit_code: Arc<(Mutex<Option<(u32, DateTime<Utc>)>>, Condvar)>,
     engine: spin_engine::Engine,
@@ -32,6 +34,7 @@ pub struct Wasi {
     stdout: String,
     stderr: String,
     bundle: String,
+    shutdown_signal: Arc<(Mutex<bool>, Condvar)>,
 }
 
 pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
@@ -72,6 +75,7 @@ impl Wasi {
                     OpenOptions::new()
                         .read(true)
                         .write(true)
+                        .create(true)
                         .open(stdin_pipe_path.clone())
                         .unwrap(),
                     stdin_pipe_path.clone(),
@@ -80,6 +84,7 @@ impl Wasi {
                     OpenOptions::new()
                         .read(true)
                         .write(true)
+                        .create(true)
                         .open(stdout_pipe_path.clone())
                         .unwrap(),
                     stdout_pipe_path.clone(),
@@ -88,6 +93,7 @@ impl Wasi {
                     OpenOptions::new()
                         .read(true)
                         .write(true)
+                        .create(true)
                         .open(stderr_pipe_path.clone())
                         .unwrap(),
                     stderr_pipe_path.clone(),
@@ -125,7 +131,7 @@ impl Wasi {
         let component_triggers: spin_manifest::ComponentMap<spin_manifest::HttpConfig> = app
             .component_triggers
             .into_iter()
-            .map(|(id, trigger)| Ok((id.clone(), trigger.try_into().unwrap())))
+            .map(|(id, trigger)| Ok((id, trigger.try_into().unwrap())))
             .collect::<Result<_, Error>>()?;
 
         Ok(HttpTrigger::new(
@@ -149,12 +155,14 @@ impl Instance for Wasi {
             stdout: cfg.get_stdout().unwrap_or_default(),
             stderr: cfg.get_stderr().unwrap_or_default(),
             bundle: cfg.get_bundle().unwrap_or_default(),
+            shutdown_signal: Arc::new((Mutex::new(false), Condvar::new())),
         }
     }
     fn start(&self) -> Result<u32, Error> {
         let engine = self.engine.clone();
 
-        let _exit_code = self.exit_code.clone();
+        let exit_code = self.exit_code.clone();
+        let shutdown_signal = self.shutdown_signal.clone();
         let (tx, rx) = channel::<Result<(), Error>>();
         let bundle = self.bundle.clone();
         let stdin = self.stdin.clone();
@@ -172,13 +180,9 @@ impl Instance for Wasi {
                     }
                 };
 
-                info!("loading module: {}", mod_path.display());
-                info!("working dir: {}", working_dir.display());
-
-                info!("notifying main thread we are about to start");
-                tx.send(Ok(())).unwrap();
-
-                info!("starting spin");
+                info!(" >>> loading module: {}", mod_path.display());
+                info!(" >>> working dir: {}", working_dir.display());
+                info!(" >>> starting spin");
                 let rt = Runtime::new().unwrap();
                 rt.block_on(async {
                     let app = match Wasi::build_spin_application(mod_path, working_dir).await {
@@ -212,20 +216,53 @@ impl Instance for Wasi {
                         ))
                         .await
                     {
-                        Ok(_) => (),
+                        Ok(http_trigger) => http_trigger,
                         Err(err) => {
-                            info!("http trigger exited with error: {}", err);
-                            tx.send(Err(Error::Any(err))).unwrap();
+                            tx.send(Err(err)).unwrap();
+                            return;
                         }
-                    }
+                    };
+
+                    let rx_future = tokio::task::spawn_blocking(move || {
+                        let (lock, cvar) = &*shutdown_signal;
+                        let mut shutdown = lock.lock().unwrap();
+                        while !*shutdown {
+                            shutdown = cvar.wait(shutdown).unwrap();
+                        }
+                    });
+
+                    let f = http_trigger.run(spin_http_engine::HttpTriggerExecutionConfig::new(
+                        SPIN_ADDR.to_string(),
+                        None,
+                    ));
+
+                    info!(" >>> notifying main thread we are about to start");
+                    tx.send(Ok(())).unwrap();
+                    tokio::select! {
+                        _ = f => {
+                            log::info!(" >>> Server shut down: exiting");
+
+                            let (lock, cvar) = &*exit_code;
+                            let mut ec = lock.lock().unwrap();
+                            *ec = Some((137, Utc::now()));
+                            cvar.notify_all();
+                        },
+                        _ = rx_future => {
+                            log::info!(" >>> User requested shutdown: exiting");
+                            let (lock, cvar) = &*exit_code;
+                            let mut ec = lock.lock().unwrap();
+                            *ec = Some((0, Utc::now()));
+                            cvar.notify_all();
+                        },
+                    };
                 })
             })?;
 
-        info!("Waiting for start notification");
+        info!(" >>> Waiting for start notification");
         match rx.recv().unwrap() {
             Ok(_) => (),
             Err(err) => {
-                info!("error starting instance: {}", err);
+                info!(" >>> error starting instance: {}", err);
                 let code = self.exit_code.clone();
 
                 let (lock, cvar) = &*code;
@@ -246,7 +283,10 @@ impl Instance for Wasi {
             ));
         }
 
-        //TODO: kill the spin server
+        let (lock, cvar) = &*self.shutdown_signal;
+        let mut shutdown = lock.lock().unwrap();
+        *shutdown = true;
+        cvar.notify_all();
 
         Ok(())
     }

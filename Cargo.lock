@@ -3369,7 +3369,7 @@ dependencies = [
 [[package]]
 name = "spin-trigger"
 version = "0.2.0"
-source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-logging-pipes#f434f4b35541f417cbd7c043d9e3d3160e2b8dd1"
+source = "git+https://github.com/danbugs/spin?branch=danbugs/custom-logging-pipes#f434f4b35541f417cbd7c043d9e3d3160e2b8dd1"t
 dependencies = [
  "anyhow",
  "async-trait",
