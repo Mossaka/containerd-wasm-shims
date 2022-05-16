@@ -166,7 +166,7 @@ impl Instance for Wasi {
         let stdout = self.stdout.clone();
         let stderr = self.stderr.clone();
 
-        info!("stdin: {:#?}, stdout: {:#?}, stderr: {:#?}", stdin, stdout, stderr);
+        info!(" >>> stdin: {:#?}, stdout: {:#?}, stderr: {:#?}", stdin, stdout, stderr);
 
         thread::Builder::new()
             .name(self.id.clone())
@@ -201,20 +201,6 @@ impl Instance for Wasi {
                         PathBuf::from(stdin),
                     )
                     .await
-                    {
-                        Ok(http_trigger) => http_trigger,
-                        Err(err) => {
-                            tx.send(Err(err)).unwrap();
-                            return;
-                        }
-                    };
-
-                    match http_trigger
-                        .run(spin_http_engine::HttpTriggerExecutionConfig::new(
-                            "0.0.0.0:80".to_string(),
-                            None,
-                        ))
-                        .await
                     {
                         Ok(http_trigger) => http_trigger,
                         Err(err) => {
