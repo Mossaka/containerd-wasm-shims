@@ -166,6 +166,8 @@ impl Instance for Wasi {
         let stdout = self.stdout.clone();
         let stderr = self.stderr.clone();
 
+        info!("stdin: {:#?}, stdout: {:#?}, stderr: {:#?}", stdin, stdout, stderr);
+
         thread::Builder::new()
             .name(self.id.clone())
             .spawn(move || {
@@ -180,6 +182,7 @@ impl Instance for Wasi {
                 info!(" >>> loading module: {}", mod_path.display());
                 info!(" >>> working dir: {}", working_dir.display());
                 info!(" >>> starting spin");
+                
                 let rt = Runtime::new().unwrap();
                 rt.block_on(async {
                     let app = match Wasi::build_spin_application(mod_path, working_dir).await {
