@@ -2,5 +2,6 @@
 members = [
     "containerd-shim-aspdotnet-v1",
     "containerd-shim-cehostshim-v1",
-    "containerd-shim-spin-v1"
+    "containerd-shim-spin-v1",
+    "containerd-shim-sat-v1",
 ]
