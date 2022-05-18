@@ -48,6 +48,21 @@ pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
     Ok((working_dir.to_path_buf(), mod_path))
 }
 
+pub fn maybe_open_stdio(pipe_path: &PathBuf) -> Option<PipeFile> {
+    if pipe_path.as_os_str().is_empty() {
+        None
+    } else {
+        Some(PipeFile::new(
+            OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(pipe_path.clone())
+                .unwrap(),
+                pipe_path.clone(),
+        ))
+    }
+}
+
 impl Wasi {
     async fn build_spin_application(
         mod_path: PathBuf,
@@ -64,42 +79,9 @@ impl Wasi {
         stdin_pipe_path: PathBuf,
     ) -> Result<HttpTrigger, Error> {
         let custom_log_pipes = CustomLogPipes::new(
-            if stdin_pipe_path.as_os_str().is_empty() {
-                None
-            } else {
-                Some(PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stdin_pipe_path.clone())
-                        .unwrap(),
-                    stdin_pipe_path.clone(),
-                ))
-            },
-            if stdout_pipe_path.as_os_str().is_empty() {
-                None
-            } else {
-                Some(PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stdout_pipe_path.clone())
-                        .unwrap(),
-                    stdout_pipe_path.clone(),
-                ))
-            },
-            if stderr_pipe_path.as_os_str().is_empty() {
-                None
-            } else {
-                Some(PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stderr_pipe_path.clone())
-                        .unwrap(),
-                    stderr_pipe_path.clone(),
-                ))
-            },
+            maybe_open_stdio(&stdin_pipe_path),
+            maybe_open_stdio(&stdout_pipe_path),
+            maybe_open_stdio(&stderr_pipe_path),
         );
 
         info!(" >>> {:#?}", custom_log_pipes);
