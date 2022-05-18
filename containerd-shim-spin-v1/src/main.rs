@@ -48,6 +48,21 @@ pub fn prepare_module(bundle: String) -> Result<(PathBuf, PathBuf), Error> {
     Ok((working_dir.to_path_buf(), mod_path))
 }
 
+pub fn maybe_open_stdio(pipe_path: &PathBuf) -> Option<PipeFile> {
+    if pipe_path.as_os_str().is_empty() {
+        None
+    } else {
+        Some(PipeFile::new(
+            OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(pipe_path.clone())
+                .unwrap(),
+                pipe_path.clone(),
+        ))
+    }
+}
+
 impl Wasi {
     async fn build_spin_application(
         mod_path: PathBuf,
@@ -63,61 +78,20 @@ impl Wasi {
         stderr_pipe_path: PathBuf,
         stdin_pipe_path: PathBuf,
     ) -> Result<HttpTrigger, Error> {
-
-        let custom_log_pipes = if stdin_pipe_path.as_os_str().is_empty()
-            || stdout_pipe_path.as_os_str().is_empty()
-            || stderr_pipe_path.as_os_str().is_empty()
-        {
-            None
-        } else {
-            Some(CustomLogPipes::new(
-                PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stdin_pipe_path.clone())
-                        .unwrap(),
-                    stdin_pipe_path.clone(),
-                ),
-                PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stdout_pipe_path.clone())
-                        .unwrap(),
-                    stdout_pipe_path.clone(),
-                ),
-                PipeFile::new(
-                    OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(stderr_pipe_path.clone())
-                        .unwrap(),
-                    stderr_pipe_path.clone(),
-                ),
-            ))
-        };
+        let custom_log_pipes = CustomLogPipes::new(
+            maybe_open_stdio(&stdin_pipe_path),
+            maybe_open_stdio(&stdout_pipe_path),
+            maybe_open_stdio(&stderr_pipe_path),
+        );
 
         info!(" >>> {:#?}", custom_log_pipes);
 
-        let config = match custom_log_pipes {
-            Some(clp) => {
-                spin_engine::ExecutionContextConfiguration {
-                    components: app.components,
-                    label: app.info.name,
-                    config_resolver: app.config_resolver,
-                    module_io_redirects: ModuleIoRedirectsTypes::FromFiles(clp),
-                    ..Default::default()
-                }
-            }, 
-            None => {
-                spin_engine::ExecutionContextConfiguration {
-                    components: app.components,
-                    label: app.info.name,
-                    config_resolver: app.config_resolver,
-                    ..Default::default()
-                }
-            }
+        let config = spin_engine::ExecutionContextConfiguration {
+            components: app.components,
+            label: app.info.name,
+            config_resolver: app.config_resolver,
+            module_io_redirects: ModuleIoRedirectsTypes::FromFiles(custom_log_pipes),
+            ..Default::default()
         };
 
         let mut builder = spin_engine::Builder::with_engine(config, engine)?;
@@ -166,7 +140,10 @@ impl Instance for Wasi {
         let stdout = self.stdout.clone();
         let stderr = self.stderr.clone();
 
-        info!(" >>> stdin: {:#?}, stdout: {:#?}, stderr: {:#?}", stdin, stdout, stderr);
+        info!(
+            " >>> stdin: {:#?}, stdout: {:#?}, stderr: {:#?}",
+            stdin, stdout, stderr
+        );
 
         thread::Builder::new()
             .name(self.id.clone())
@@ -182,7 +159,7 @@ impl Instance for Wasi {
                 info!(" >>> loading module: {}", mod_path.display());
                 info!(" >>> working dir: {}", working_dir.display());
                 info!(" >>> starting spin");
-                
+
                 let rt = Runtime::new().unwrap();
                 rt.block_on(async {
                     let app = match Wasi::build_spin_application(mod_path, working_dir).await {
